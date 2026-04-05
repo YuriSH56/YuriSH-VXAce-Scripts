@@ -1,6 +1,16 @@
 #==============================================================================
 # ** Withered Foxy Jumpscare
 # * By YuriSH
+# -----------------------------------------------------------------------------
+# * UPDATES HISTORY
+# -----------------------------------------------------------------------------
+# * Version 1.0 (01.28.2026)
+#     Initial release.
+#
+# * Version 1.1 (04.05.2026)
+#     Bug fixes.
+#     Can now be toggled.
+#
 #------------------------------------------------------------------------------
 # Withered Foxy jumpscare right in your RPGMaker game!
 # Put "foxy.png" into "Pictures" folder.
@@ -9,6 +19,8 @@
 # Technically, this script allows you to create ANY animated jumpscare.
 # Check config section for details.
 #
+# To temporary disable/enable the jumpscare use the script call:
+# * toggle_jumpscare(TrueOrFalse)
 #==============================================================================
 
 $imported = {} if $imported.nil?
@@ -21,9 +33,6 @@ $imported["YuriSH_FoxyJumpscare"] = true
 module YuriSH
   module Const
     module Foxy
-      # Enables jumpscare.
-      # Set to false to disable
-      ENABLED = true
       # Z-Index of jumpscare image
       # Adjust if other scripts use this value and you want jumpscare
       # to appear above everything else
@@ -45,10 +54,12 @@ module YuriSH
       SOUND_PITCH = 100
       # Screen flash color (R, G, B, A)
       # Each value is 0 - 255
-      FLASH_COLOR = Color.new(255,0,0,0)
+      # Alpha of 255 - fully opaque
+      # Alpha of 0 - fully transparent
+      FLASH_COLOR = Color.new(255,0,0,255)
       # Screen flash duration (in frames)
       # Default is 120 frames (2 seconds)
-      FLASH_DURATION = 120
+      FLASH_DURATION = 60
       
       # Technical constants, DO NOT CHANGE
       
@@ -64,6 +75,22 @@ module YuriSH
       # Image Scale
       SCALE = 0.65
       
+      # If true - jumpscare will process.
+      # Set to false to temporary disable the jumpscare.
+      @enabled = true
+      
+      #----------------------------------------------------------------------
+      # * Toggles Jumpscare Processing
+      #----------------------------------------------------------------------
+      def self.toggle(value)
+        @enabled = value
+      end
+      #----------------------------------------------------------------------
+      # * Is Jumpscare Enabled?
+      #----------------------------------------------------------------------
+      def self.enabled?
+        return @enabled
+      end
       #----------------------------------------------------------------------
       # * Returns Hash Of Values
       #----------------------------------------------------------------------
@@ -104,9 +131,11 @@ class Sprite_FoxyJumpscare < Sprite
   def initialize(viewport)
     super(viewport)
     @counter = 0
-    @debounce_counter = 0
+    @debounce_counter = SceneManager.scene.transition_speed
     @frame = -1
+    @enabled = true
     get_hash_of_data
+    cache_image
     update
   end
   #--------------------------------------------------------------------------
@@ -115,6 +144,12 @@ class Sprite_FoxyJumpscare < Sprite
   #--------------------------------------------------------------------------
   def get_hash_of_data
     @data = YuriSH::Const::Foxy.get_hash
+  end
+  #--------------------------------------------------------------------------
+  # * Cache Image To Prevent Lag
+  #--------------------------------------------------------------------------
+  def cache_image
+    Cache.picture(@data[:image])
   end
   #--------------------------------------------------------------------------
   # * Free
@@ -128,12 +163,22 @@ class Sprite_FoxyJumpscare < Sprite
   #--------------------------------------------------------------------------
   def update
     super
+    update_enabled
+    return unless @enabled
     roll_chance
     update_bitmap
     update_other
     update_jumpscare
   end
-  
+  #--------------------------------------------------------------------------
+  # * Checks If Enabled State Changes
+  #--------------------------------------------------------------------------
+  def update_enabled
+    new_val = YuriSH::Const::Foxy.enabled?
+    if new_val != @enabled
+      toggle(new_val)
+    end
+  end
   #--------------------------------------------------------------------------
   # * Update Transfer Origin Bitmap
   #--------------------------------------------------------------------------
@@ -141,7 +186,7 @@ class Sprite_FoxyJumpscare < Sprite
     if @frame < 0
       self.bitmap = nil
     else
-      self.bitmap = Cache.picture(@data[:image])
+      self.bitmap = cache_image
     end
   end
   #--------------------------------------------------------------------------
@@ -150,7 +195,7 @@ class Sprite_FoxyJumpscare < Sprite
   def update_jumpscare
     @counter -= 1
     if @counter == 0
-      if @frame == @data[:cell_size][0] * @data[:cell_size][1] - 1
+      if @frame == @data[:cells][:x] * @data[:cells][:y] - 1
         @frame = -1
         $game_map.screen.start_flash(@data[:flash_color], @data[:flash_duration])
         return
@@ -201,6 +246,25 @@ class Sprite_FoxyJumpscare < Sprite
     return if @data[:sound_name].empty?
     Audio.se_play("Audio/SE/" + @data[:sound_name], @data[:sound_volume], @data[:sound_pitch])
   end
+  #--------------------------------------------------------------------------
+  # * Resets Jumpscare
+  #--------------------------------------------------------------------------
+  def reset_jumpscare
+    @counter = 0
+    @debounce_counter = 0
+    @frame = -1
+    update_bitmap
+    update_other
+  end
+  #--------------------------------------------------------------------------
+  # * Toggle Jumpscare
+  #--------------------------------------------------------------------------
+  def toggle(value)
+    @enabled = value
+    if not value
+      reset_jumpscare
+    end
+  end
 end
 
 #==============================================================================
@@ -213,7 +277,7 @@ class Spriteset_Map
   #--------------------------------------------------------------------------
   alias initialize_yurish_foxy initialize
   def initialize
-    create_foxy if YuriSH::Const::Foxy::ENABLED
+    create_foxy
     initialize_yurish_foxy
   end
   #--------------------------------------------------------------------------
@@ -228,7 +292,7 @@ class Spriteset_Map
   #--------------------------------------------------------------------------
   alias update_yurish_foxy update
   def update
-    update_foxy if YuriSH::Const::Foxy::ENABLED
+    update_foxy
     update_yurish_foxy
   end
   #--------------------------------------------------------------------------
@@ -242,7 +306,7 @@ class Spriteset_Map
   #--------------------------------------------------------------------------
   alias dispose_yurish_foxy dispose
   def dispose
-    dispose_foxy if YuriSH::Const::Foxy::ENABLED
+    dispose_foxy
     dispose_yurish_foxy
   end
   #--------------------------------------------------------------------------
@@ -250,5 +314,18 @@ class Spriteset_Map
   #--------------------------------------------------------------------------
   def dispose_foxy
     @foxy_picture.dispose
+  end
+end
+
+#==============================================================================
+# ** Game_Interpreter
+#==============================================================================
+
+class Game_Interpreter
+  #--------------------------------------------------------------------------
+  # * Toggle Foxy Jumpscare
+  #--------------------------------------------------------------------------
+  def toggle_jumpscare(value)
+    YuriSH::Const::Foxy.toggle(value)
   end
 end
