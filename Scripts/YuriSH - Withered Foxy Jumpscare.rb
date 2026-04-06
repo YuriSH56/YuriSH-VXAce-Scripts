@@ -11,6 +11,9 @@
 #     Bug fixes.
 #     Can now be toggled.
 #
+# * Version 1.2 (04.06.2026)
+#	  Can now be triggered manually.
+#
 #------------------------------------------------------------------------------
 # Withered Foxy jumpscare right in your RPGMaker game!
 # Put "foxy.png" into "Pictures" folder.
@@ -42,6 +45,7 @@ module YuriSH
       # Default is 0.000001 (Like 1/1000000 chance)
       CHANCE = 0.000001
       # Delay between jumpscares (in frames)
+	  # Delay completely prevents jumpscares from appearing
       # Default is 1200 frames (20 seconds)
       DELAY = 1200
       # Sound that will play when jumpscare occurs
@@ -56,35 +60,50 @@ module YuriSH
       # Each value is 0 - 255
       # Alpha of 255 - fully opaque
       # Alpha of 0 - fully transparent
+	  # Set Alpha to 0 to disable screen flash
       FLASH_COLOR = Color.new(255,0,0,255)
       # Screen flash duration (in frames)
       # Default is 120 frames (2 seconds)
       FLASH_DURATION = 60
       
-      # Technical constants, DO NOT CHANGE
-      
-      # Jumpscare Name
+      # Jumpscare spritesheet image name
       # Must be placed in "Pictures" folder
       IMAGE = "foxy"
-      # Image Cell Size (x, y)
+      #Individual cell size (x, y)
       CELL_SIZE = {:x => 1024, :y => 768}
-      # Image Cells (x, y)
+      # Number of cells in the spritesheet (x, y)
       CELLS = {:x => 2, :y => 7}
-      # Time Between Cells (In Frames)
+      # Time between cells (in frames)
+	  # Default is 2 frames (1/30 of a second)
       SPEED = 2
-      # Image Scale
+      # Image scale
       SCALE = 0.65
       
-      # If true - jumpscare will process.
-      # Set to false to temporary disable the jumpscare.
+      # If true - jumpscare will process
+      # If false - jumpscare will be disabled
       @enabled = true
-      
+	  # Set to true to IMMEDIATELY summon a jumpscare
+	  # Will work even if jumpscare is disabled
+      @trigger_immediately = false
+	  
       #----------------------------------------------------------------------
       # * Toggles Jumpscare Processing
       #----------------------------------------------------------------------
       def self.toggle(value)
         @enabled = value
       end
+      #----------------------------------------------------------------------
+      # * Immediately Triggers The Jumpscare
+      #----------------------------------------------------------------------
+	  def self.trigger(value = true)
+		@trigger_immediately = value
+	  end
+      #----------------------------------------------------------------------
+      # * Was Jumpscare Triggered?
+      #----------------------------------------------------------------------
+	  def self.triggered?
+		return @trigger_immediately
+	  end
       #----------------------------------------------------------------------
       # * Is Jumpscare Enabled?
       #----------------------------------------------------------------------
@@ -133,7 +152,8 @@ class Sprite_FoxyJumpscare < Sprite
     @counter = 0
     @debounce_counter = SceneManager.scene.transition_speed
     @frame = -1
-    @enabled = true
+    @enabled = YuriSH::Const::Foxy.enabled?
+	@immediate_processing = false
     get_hash_of_data
     cache_image
     update
@@ -152,6 +172,16 @@ class Sprite_FoxyJumpscare < Sprite
     Cache.picture(@data[:image])
   end
   #--------------------------------------------------------------------------
+  # * Checks If Jumpscare Was Triggered By Hand
+  #--------------------------------------------------------------------------
+  def check_for_immediate_trigger
+	if YuriSH::Const::Foxy.triggered?
+	  YuriSH::Const::Foxy.trigger(false)
+	  @immediate_processing = true
+	  init_jumpscare
+	end
+  end
+  #--------------------------------------------------------------------------
   # * Free
   #--------------------------------------------------------------------------
   def dispose
@@ -164,7 +194,8 @@ class Sprite_FoxyJumpscare < Sprite
   def update
     super
     update_enabled
-    return unless @enabled
+	check_for_immediate_trigger
+    return unless (@enabled or @immediate_processing)
     roll_chance
     update_bitmap
     update_other
@@ -197,7 +228,10 @@ class Sprite_FoxyJumpscare < Sprite
     if @counter == 0
       if @frame == @data[:cells][:x] * @data[:cells][:y] - 1
         @frame = -1
-        $game_map.screen.start_flash(@data[:flash_color], @data[:flash_duration])
+		@immediate_processing = false
+		if @data[:flash_color].alpha > 0
+		  $game_map.screen.start_flash(@data[:flash_color], @data[:flash_duration])
+		end
         return
       end
       @frame += 1
@@ -252,6 +286,7 @@ class Sprite_FoxyJumpscare < Sprite
   def reset_jumpscare
     @counter = 0
     @debounce_counter = 0
+	@immediate_processing = false
     @frame = -1
     update_bitmap
     update_other
@@ -327,5 +362,11 @@ class Game_Interpreter
   #--------------------------------------------------------------------------
   def toggle_jumpscare(value)
     YuriSH::Const::Foxy.toggle(value)
+  end
+  #--------------------------------------------------------------------------
+  # * Immediately Trigger The Jumpscare
+  #--------------------------------------------------------------------------
+  def trigger_jumpscare
+	YuriSH::Const::Foxy.trigger
   end
 end
