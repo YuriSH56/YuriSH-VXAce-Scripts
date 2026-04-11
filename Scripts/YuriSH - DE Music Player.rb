@@ -14,6 +14,9 @@
 #     Cleaning up.
 #     Added more customization options.
 #
+# * Version 1.1.2 (04.11.2026)
+#     Fixed synchronization bug when changing volume.
+#
 # -----------------------------------------------------------------------------
 # * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
@@ -932,8 +935,8 @@ class Window_MusicControl < Window_Base
   #--------------------------------------------------------------------------
   # * Play Current Track
   #--------------------------------------------------------------------------
-  def play(pos = -1)
-    @start_time = Time.now
+  def play(pos = -1, time_update = true)
+    @start_time = Time.now if time_update
     @last_pos = pos if pos >= 0
     Audio.bgm_play('Audio/BGM/' + get_file_name, @volume, @pitch, @last_pos)
     @playing = true
@@ -960,12 +963,9 @@ class Window_MusicControl < Window_Base
   # * Change Volume
   #--------------------------------------------------------------------------
   def change_volume(value)
-    @volume = value
-    @volume = 100 if @volume > 100
-    @volume = 0 if @volume < 0
+    @volume = [[value, 100].min, 0].max
     refresh_controls
-    @last_pos = Audio.bgm_pos
-    play if @playing
+    play(-1, false) if @playing
   end
   #--------------------------------------------------------------------------
   # * Change Pitch
@@ -973,9 +973,7 @@ class Window_MusicControl < Window_Base
   def change_pitch(value)
     p_min = YuriSH::Const::MusicPlayer::PITCH_RANGE.min
     p_max = YuriSH::Const::MusicPlayer::PITCH_RANGE.max
-    @pitch = value
-    @pitch = p_max if @pitch > p_max
-    @pitch = p_min if @pitch < p_min
+    @pitch = [[value, p_max].min, p_min].max
     refresh_controls
     @last_pos = Audio.bgm_pos
     play if @playing
