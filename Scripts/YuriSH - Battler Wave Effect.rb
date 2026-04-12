@@ -17,7 +17,7 @@
 module YuriSH
   module Const
     module BattlerWave
-      REGEX = /<wave (\d+), *(\d+), *(\d+), *(\d+)>/i
+      REGEX = /<wave: ?(\d+), *(\d+), *(\d+), *(\d+)>/i
     end
   end
 end
