@@ -17,6 +17,8 @@
 # * Version 1.1.2 (04.11.2026)
 #     Fixed synchronization bug when changing volume.
 #
+# * Version 1.2 (04.18.2026)
+#     Added MKXP support.
 # -----------------------------------------------------------------------------
 # * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
@@ -24,6 +26,7 @@
 # You can specify any track you would like from the project's BGM folder.
 # 
 #                  !!!ONLY OGG AND WAV FILES ARE SUPPORTED!!!
+#                 !!!MKXP SUPPORTS OGG AND MP3 FILES INSTEAD!!!
 #            Other files will appear greyed out and will be disabled.
 #
 # -----------------------------------------------------------------------------
@@ -883,12 +886,13 @@ class Window_MusicControl < Window_Base
   #--------------------------------------------------------------------------
   def initialize
     super(0, 0, Graphics.width, fitting_height(3) - 16)
+    @empty_bgm = RPG::BGM.new("", 100, 100) if $MKXP # Empty BGM object.
     @track_id = -1
     @track_data = nil
     @volume = YuriSH::Const::MusicPlayer::VOLUME_DEFAULT
     @pitch = YuriSH::Const::MusicPlayer::PITCH_DEFAULT
-    @last_pos = 0
-    @start_time = 0
+    @last_pos = $MKXP ? 0.0 : 0
+    @start_time = $MKXP ? 0.0 : 0
     @playing = false
     refresh
   end
@@ -901,8 +905,8 @@ class Window_MusicControl < Window_Base
     @track_data = nil
     @volume = YuriSH::Const::MusicPlayer::VOLUME_DEFAULT
     @pitch = YuriSH::Const::MusicPlayer::PITCH_DEFAULT
-    @last_pos = 0
-    @start_time = 0
+    @last_pos = $MKXP ? 0.0 : 0
+    @start_time = $MKXP ? 0.0 : 0
     @playing = false
   end
   #--------------------------------------------------------------------------
@@ -927,8 +931,8 @@ class Window_MusicControl < Window_Base
       stop
       @track_id = id
       @track_data = YuriSH::Const::MusicPlayer::TRACKS[@track_id]
-      @last_pos = 0
-      @start_time = 0
+      @last_pos = $MKXP ? 0.0 : 0
+      @start_time = $MKXP ? 0.0 : 0
       play
     end
   end
@@ -936,9 +940,21 @@ class Window_MusicControl < Window_Base
   # * Play Current Track
   #--------------------------------------------------------------------------
   def play(pos = -1, time_update = true)
-    @start_time = Time.now if time_update
-    @last_pos = pos if pos >= 0
-    Audio.bgm_play('Audio/BGM/' + get_file_name, @volume, @pitch, @last_pos)
+    if $MKXP
+      @start_time = Time.now.to_f if time_update
+      @last_pos = pos.to_f if pos >= 0.0
+      RPG::BGM.new(get_file_name, @volume, @pitch).play
+      if time_update
+        $game_system.save_bgm
+        @empty_bgm.play
+        $game_system.move_saved_bgm(@last_pos)
+        $game_system.replay_bgm
+      end
+    else
+      @start_time = Time.now if time_update
+      @last_pos = pos if pos >= 0
+      Audio.bgm_play('Audio/BGM/' + get_file_name, @volume, @pitch, @last_pos)
+    end
     @playing = true
   end
   #--------------------------------------------------------------------------
@@ -946,7 +962,11 @@ class Window_MusicControl < Window_Base
   #--------------------------------------------------------------------------
   def stop
     @last_pos = Audio.bgm_pos
-    Audio.bgm_stop
+    if $MKXP
+      @empty_bgm.play
+    else
+      Audio.bgm_stop
+    end
     @playing = false
   end
   #--------------------------------------------------------------------------
@@ -955,8 +975,14 @@ class Window_MusicControl < Window_Base
   def move_by(seconds)
     return unless @playing
     stop
-    @last_pos += YuriSH::Const::MusicPlayer::VXACE_HZ_RATE * seconds
-    @last_pos = 0 if @last_pos < 0
+    if $MKXP
+      @last_pos += seconds.to_f
+      @last_pos = 0.0 if @last_pos < 0.0
+      p @last_pos
+    else
+      @last_pos += YuriSH::Const::MusicPlayer::VXACE_HZ_RATE * seconds
+      @last_pos = 0 if @last_pos < 0
+    end
     play
   end
   #--------------------------------------------------------------------------
@@ -990,8 +1016,14 @@ class Window_MusicControl < Window_Base
     end
     
     max_dur = @track_data[:duration] / get_sample_rate.to_f
-    cur_dur = (Time.now - @start_time) * (@pitch / 100.0)
-    cur_dur += (@last_pos / YuriSH::Const::MusicPlayer::VXACE_HZ_RATE.to_f)
+    cur_dur = 0
+    if $MKXP
+      cur_dur = (Time.now.to_f - @start_time) * (@pitch / 100.0)
+      cur_dur += @last_pos
+    else
+      cur_dur = (Time.now - @start_time) * (@pitch / 100.0)
+      cur_dur += (@last_pos / YuriSH::Const::MusicPlayer::VXACE_HZ_RATE.to_f)
+    end
     cur_dur = cur_dur % max_dur
     r_rate = cur_dur / max_dur
     return [max_dur, cur_dur, r_rate]
@@ -1138,11 +1170,12 @@ class Window_MusicControl < Window_Base
   #--------------------------------------------------------------------------
   def handle_move
     if @playing
+      i_step = YuriSH::Const::MusicPlayer::SEEK_STEP
       if Input.trigger?(:LEFT) or Input.repeat?(:LEFT)
-        move_by(-YuriSH::Const::MusicPlayer::SEEK_STEP)
+        move_by($MKXP ? -i_step.to_f : -i_step)
         Sound.play_cursor
       elsif Input.trigger?(:RIGHT) or Input.repeat?(:RIGHT)
-        move_by(YuriSH::Const::MusicPlayer::SEEK_STEP)
+        move_by($MKXP ? i_step.to_f : i_step)
         Sound.play_cursor
       end
     end
@@ -1297,11 +1330,21 @@ class Window_MusicSelect < Window_Selectable
     return $game_music_player.unlocked?(data[:key])
   end
   #--------------------------------------------------------------------------
+  # * Returns Array Of Supported Audio Formats
+  #--------------------------------------------------------------------------
+  def get_supported_file_formats
+    if $MKXP
+      return [".ogg", ".mp3"]
+    else
+      return [".ogg", ".wav"]
+    end
+  end
+  #--------------------------------------------------------------------------
   # * Returns True If File Exists
   #--------------------------------------------------------------------------
   def file_exists?(index)
     f_path = "Audio/BGM/" + get_file_name(index)
-    [".ogg", ".wav"].each do |x|
+    get_supported_file_formats.each do |x|
       return true if FileTest.exist?(f_path + x)
     end
     return false
@@ -1382,6 +1425,24 @@ class Window_TitleCommand < Window_Command
       :ext => nil}
     @list.insert(@list.size-1, c_com)
   end
+end
+
+# This function is only implemented if running under MKXP
+if $MKXP
+
+#==============================================================================
+# ** Game_System
+#==============================================================================
+
+class Game_System
+  #--------------------------------------------------------------------------
+  # * Moves Position On Currently Saved BGM
+  #--------------------------------------------------------------------------
+  def move_saved_bgm(pos = 0.0)
+    @saved_bgm.pos = pos if @saved_bgm
+  end
+end
+
 end
 
 # Stuff below exists only if UNLOCK_MODE is enabled.
