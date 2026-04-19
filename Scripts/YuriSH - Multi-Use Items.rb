@@ -15,11 +15,9 @@ $imported = {} if $imported.nil?
 $imported["YuriSH_MultiUseItems"] = true
 
 module YuriSH
-  module Const
-    module ItemMultUse
-      REGEX = /<uses: (\d+)>/i
-      TEXT_REGEX = /\\USES/i
-    end
+  module ItemMultUse
+    REGEX = /<uses: (\d+)>/i
+    TEXT_REGEX = /\\USES/i
   end
 end
 
@@ -34,7 +32,7 @@ class RPG::Item
   # ---------------------------------------------------------------------------
   def uses
     if @uses.nil?
-      @_uses = (@note =~ YuriSH::Const::ItemMultUse::REGEX ? $1.to_i : 1)
+      @_uses = (@note =~ YuriSH::ItemMultUse::REGEX ? $1.to_i : 1)
       @uses = @_uses
     end
     return @uses
@@ -88,7 +86,7 @@ class Window_Help < Window_Base
   def set_item(item)
     if item.is_a?(RPG::Item)
       p item.description
-      set_text(item.description.gsub(YuriSH::Const::ItemMultUse::TEXT_REGEX, item.uses.to_s))
+      set_text(item.description.gsub(YuriSH::ItemMultUse::TEXT_REGEX, item.uses.to_s))
       return
     end
     set_item_yurish_1zb08(item)

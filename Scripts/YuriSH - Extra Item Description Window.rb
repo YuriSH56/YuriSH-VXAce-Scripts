@@ -14,11 +14,9 @@ $imported = {} if $imported.nil?
 $imported["YuriSH_ExtraDescWindow"] = true
 
 module YuriSH
-  module Const
-    module EX_DescWindow
-      REGEX = /<info>(.*?)<\/info>/im
-      MAX_WIDTH = 200
-    end
+  module EX_DescWindow
+    REGEX = /<info>(.*?)<\/info>/im
+    MAX_WIDTH = 200
   end
 end
 
@@ -32,7 +30,7 @@ class RPG::BaseItem
   # ---------------------------------------------------------------------------
   def additional_info
     if @additional_info.nil?
-      @additional_info = (@note =~ YuriSH::Const::EX_DescWindow::REGEX ? $1.strip : "")
+      @additional_info = (@note =~ YuriSH::EX_DescWindow::REGEX ? $1.strip : "")
     end
     return @additional_info
   end
@@ -56,7 +54,7 @@ class Window_AdditionalInfo < Window_Base
     super(
       0,
       fitting_height(2),
-      YuriSH::Const::EX_DescWindow::MAX_WIDTH,
+      YuriSH::EX_DescWindow::MAX_WIDTH,
       fitting_height(line_number)
       )
   end

@@ -22,11 +22,9 @@ $imported["YuriSH_Slopes"] = true
 # =============================================================================
 
 module YuriSH
-  module Const
-    module Slopes
-      RIGHT_SLOPE = 5   # Terrain Tag of right-facing slopes
-      LEFT_SLOPE  = 6   # Terrain Tag of left-facing slopes
-    end
+  module Slopes
+    RIGHT_SLOPE = 5   # Terrain Tag of right-facing slopes
+    LEFT_SLOPE  = 6   # Terrain Tag of left-facing slopes
   end
 end
 
@@ -64,15 +62,15 @@ class Game_Player < Game_Character
       p_dir = Input.dir4
       
       if p_dir == 4
-        if t_tag_below == YuriSH::Const::Slopes::RIGHT_SLOPE
+        if t_tag_below == YuriSH::Slopes::RIGHT_SLOPE
           @y += 1
-        elsif t_tag == YuriSH::Const::Slopes::LEFT_SLOPE
+        elsif t_tag == YuriSH::Slopes::LEFT_SLOPE
           @y -= 1
         end
       elsif p_dir == 6
-        if t_tag_below == YuriSH::Const::Slopes::LEFT_SLOPE
+        if t_tag_below == YuriSH::Slopes::LEFT_SLOPE
           @y += 1
-        elsif t_tag == YuriSH::Const::Slopes::RIGHT_SLOPE
+        elsif t_tag == YuriSH::Slopes::RIGHT_SLOPE
           @y -= 1
         end
       end

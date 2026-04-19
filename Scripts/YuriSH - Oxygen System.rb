@@ -88,123 +88,121 @@ $imported["YuriSH_OxygenSystem"] = true
 # =============================================================================
 
 module YuriSH
-  module Const
-    module Underwater
-      # ====================\/\/ DO NOT CHANGE THIS \/\/==================== #
-      # Map regex for water level.
-      Y_REGEX = /<water level: ?(\d+)>/i
-      
-      # Map regex for starting the map in underwater state
-      START_REGEX = /<underwater>/i
-      
-      # Item regex for changing max oxygen
-      OXYGEN_REGEX = /<oxygen (add|mult): ?(-?\d(?:\.\d)?)>/i
-      
-      # Item regex for restoring oxygen upon item use
-      OXYGEN_ITEM_REGEX = /<oxygen restore: ?(-?\d+%?)>/i
-      
-      # Mask used to display oxygen count if SHOW_MODE is set to :percentage.
-      SHOW_MASK = "%s%%"
-      
-      # Magic number used for slow jump effect
-      JUMP_PEAK = 1.6
-      
-      # Magic number used for slow jump effect
-      JUMP_HEIGHT = 2.8
-      # ====================/\/\ DO NOT CHANGE THIS /\/\==================== #
-      
-      # Mode in which script works in.
-      # Accepts values :y_level, :region or :none.
-      #   :y_level - water will be determined by it's Y-level specified in
-      #              the editor with a note tag.
-      #   :region  - water will be determined by a list of region IDs.
-      #   :none    - disables automatic changes, allowing you to
-      #              control underwater changes manually.
-      # (DEFAULT: :y_level)
-      MODE = :y_level
+  module Underwater
+    # ====================\/\/ DO NOT CHANGE THIS \/\/==================== #
+    # Map regex for water level.
+    Y_REGEX = /<water level: ?(\d+)>/i
+    
+    # Map regex for starting the map in underwater state
+    START_REGEX = /<underwater>/i
+    
+    # Item regex for changing max oxygen
+    OXYGEN_REGEX = /<oxygen (add|mult): ?(-?\d(?:\.\d)?)>/i
+    
+    # Item regex for restoring oxygen upon item use
+    OXYGEN_ITEM_REGEX = /<oxygen restore: ?(-?\d+%?)>/i
+    
+    # Mask used to display oxygen count if SHOW_MODE is set to :percentage.
+    SHOW_MASK = "%s%%"
+    
+    # Magic number used for slow jump effect
+    JUMP_PEAK = 1.6
+    
+    # Magic number used for slow jump effect
+    JUMP_HEIGHT = 2.8
+    # ====================/\/\ DO NOT CHANGE THIS /\/\==================== #
+    
+    # Mode in which script works in.
+    # Accepts values :y_level, :region or :none.
+    #   :y_level - water will be determined by it's Y-level specified in
+    #              the editor with a note tag.
+    #   :region  - water will be determined by a list of region IDs.
+    #   :none    - disables automatic changes, allowing you to
+    #              control underwater changes manually.
+    # (DEFAULT: :y_level)
+    MODE = :y_level
 
-      # Determines text format of oxygen points shown on the meter.
-      # Accepts values :percentage, :number or :none.
-      #   :percentage - oxygen points will be shown as a percentage.
-      #   :number     - oxygen points will be shown as a raw number.
-      #   :none       - oxygen points will not be shown.
-      # (DEFAULT: :percentage)
-      SHOW_MODE = :percentage
-      
-      # If set to true - underwater jumps will be slower.
-      # Is not affected by REVERSE value.
-      # (DEFAULT: true)
-      SLOW_JUMP = true
-      
-      # If true - air and water will be reversed (breathing underwater).
-      # (DEFAULT: false)
-      REVERSE = false
-      
-      # Array of regions that count as water.
-      REGIONS = [40,41]
-      
-      # Colors used for oxygen gauge, taken from "Window" texture.
-      # Final gauge color will be a gradient from left color to right color.
-      COLORS = [22, 23]
-      
-      # Text that shows up above oxygen meter.
-      # (DEFAULT: "Oxygen")
-      TEXT = "Oxygen"
-      
-      # Visibility frames for oxygen meter.
-      # The window will fade out after this many frames if oxygen value
-      # didn't change.
-      # (DEFAULT: 120 - 2 seconds)
-      COUNTER = 120
-      
-      # Size of the oxygen meter (width, height) in pixels.
-      # (DEFAULT: [72, 24])
-      METER_SIZE = [72, 24]
-      
-      # Font size for meter text.
-      # (DEFAULT: 16)
-      FONT_SIZE = 16
-      
-      # Offset of oxygen meter in pixels.
-      # Positive numbers mean offset upwards, negative - downwards.
-      # (DEFAULT: 50)
-      Y_OFFSET = 50
-      
-      # Max oxygen points used as a baseline.
-      # This value can be affected in game using note tags.
-      # (DEFAULT: 100)
-      MAX_OXYGEN = 100
-      
-      # Frames window will take to hide or appear.
-      # (DEFAULT: 10)
-      HIDE_TIME = 10
-      
-      # Rate (in frames) at which you lose one point of oxygen.
-      # (DEFAULT: 10)
-      LOSE_RATE = 10
-      
-      # Rate (in frames) at which you restore one point of oxygen.
-      # (DEFAULT: 3)
-      GAIN_RATE = 3
-      
-      # Rate (in frames) at which you take damage when suffocating.
-      # (DEFAULT: 60 - 1 second)
-      DAMAGE_RATE = 60
-      
-      # Amount of damage player gets when drowning.
-      # Set to 0 to disable drowning.
-      # (DEFAULT: 10)
-      DAMAGE = 10
-      
-      # If true - drowning can KO your party members.
-      # If false - party members will stay at 1 HP.
-      # (DEFAULT: true)
-      DROWN_KILL = true
-      
-      # ID of an animation that plays upon drowning damage.
-      # Set to 0 to disable.
-      ANIMATION = 754
-    end
+    # Determines text format of oxygen points shown on the meter.
+    # Accepts values :percentage, :number or :none.
+    #   :percentage - oxygen points will be shown as a percentage.
+    #   :number     - oxygen points will be shown as a raw number.
+    #   :none       - oxygen points will not be shown.
+    # (DEFAULT: :percentage)
+    SHOW_MODE = :percentage
+    
+    # If set to true - underwater jumps will be slower.
+    # Is not affected by REVERSE value.
+    # (DEFAULT: true)
+    SLOW_JUMP = true
+    
+    # If true - air and water will be reversed (breathing underwater).
+    # (DEFAULT: false)
+    REVERSE = false
+    
+    # Array of regions that count as water.
+    REGIONS = [40,41]
+    
+    # Colors used for oxygen gauge, taken from "Window" texture.
+    # Final gauge color will be a gradient from left color to right color.
+    COLORS = [22, 23]
+    
+    # Text that shows up above oxygen meter.
+    # (DEFAULT: "Oxygen")
+    TEXT = "Oxygen"
+    
+    # Visibility frames for oxygen meter.
+    # The window will fade out after this many frames if oxygen value
+    # didn't change.
+    # (DEFAULT: 120 - 2 seconds)
+    COUNTER = 120
+    
+    # Size of the oxygen meter (width, height) in pixels.
+    # (DEFAULT: [72, 24])
+    METER_SIZE = [72, 24]
+    
+    # Font size for meter text.
+    # (DEFAULT: 16)
+    FONT_SIZE = 16
+    
+    # Offset of oxygen meter in pixels.
+    # Positive numbers mean offset upwards, negative - downwards.
+    # (DEFAULT: 50)
+    Y_OFFSET = 50
+    
+    # Max oxygen points used as a baseline.
+    # This value can be affected in game using note tags.
+    # (DEFAULT: 100)
+    MAX_OXYGEN = 100
+    
+    # Frames window will take to hide or appear.
+    # (DEFAULT: 10)
+    HIDE_TIME = 10
+    
+    # Rate (in frames) at which you lose one point of oxygen.
+    # (DEFAULT: 10)
+    LOSE_RATE = 10
+    
+    # Rate (in frames) at which you restore one point of oxygen.
+    # (DEFAULT: 3)
+    GAIN_RATE = 3
+    
+    # Rate (in frames) at which you take damage when suffocating.
+    # (DEFAULT: 60 - 1 second)
+    DAMAGE_RATE = 60
+    
+    # Amount of damage player gets when drowning.
+    # Set to 0 to disable drowning.
+    # (DEFAULT: 10)
+    DAMAGE = 10
+    
+    # If true - drowning can KO your party members.
+    # If false - party members will stay at 1 HP.
+    # (DEFAULT: true)
+    DROWN_KILL = true
+    
+    # ID of an animation that plays upon drowning damage.
+    # Set to 0 to disable.
+    ANIMATION = 754
   end
 end
 
@@ -233,11 +231,11 @@ class Sprite_OxygenMeter < Sprite
     @visibility_counter = 0
     @window_openness = 0
     if @@_visible
-      @visibility_counter = YuriSH::Const::Underwater::COUNTER
-      @window_openness = YuriSH::Const::Underwater::HIDE_TIME
+      @visibility_counter = YuriSH::Underwater::COUNTER
+      @window_openness = YuriSH::Underwater::HIDE_TIME
     end
-    @mx = YuriSH::Const::Underwater::METER_SIZE[0] # Window size
-    @my = YuriSH::Const::Underwater::METER_SIZE[1] # Window size
+    @mx = YuriSH::Underwater::METER_SIZE[0] # Window size
+    @my = YuriSH::Underwater::METER_SIZE[1] # Window size
     make_bitmaps
     update
   end
@@ -316,9 +314,9 @@ class Sprite_OxygenMeter < Sprite
   # * Gets Current Oxygen Rate As Text
   #--------------------------------------------------------------------------
   def get_oxygen_text
-    case YuriSH::Const::Underwater::SHOW_MODE
+    case YuriSH::Underwater::SHOW_MODE
     when :percentage
-      YuriSH::Const::Underwater::SHOW_MASK % (get_oxygen_rate * 100.0).round.to_s
+      YuriSH::Underwater::SHOW_MASK % (get_oxygen_rate * 100.0).round.to_s
     when :number
       @player.current_oxygen.to_s
     else
@@ -386,8 +384,8 @@ class Sprite_OxygenMeter < Sprite
     @window_gauge = Bitmap.new(@mx-12, @my-12)
     @window_gauge.gradient_fill_rect(0, 0,
     @window_gauge.width * get_oxygen_rate, @window_gauge.height,
-    text_color(YuriSH::Const::Underwater::COLORS[0]),
-    text_color(YuriSH::Const::Underwater::COLORS[1])
+    text_color(YuriSH::Underwater::COLORS[0]),
+    text_color(YuriSH::Underwater::COLORS[1])
     )
   end
   #--------------------------------------------------------------------------
@@ -398,12 +396,12 @@ class Sprite_OxygenMeter < Sprite
       return unless oxygen_changed? || @_force_draw
       update_oxygen_gauge
       self.bitmap = Bitmap.new(@mx+24, @my+24)
-      self.bitmap.font.size = YuriSH::Const::Underwater::FONT_SIZE
+      self.bitmap.font.size = YuriSH::Underwater::FONT_SIZE
       self.bitmap.blt(14, 26, @window_background, @window_background.rect)
       self.bitmap.blt(18, 30, @window_gauge, @window_gauge.rect)
       self.bitmap.blt(12, 24, @window_frame, @window_frame.rect)
       self.bitmap.draw_text(0, 24, self.bitmap.width, @my, get_oxygen_text, 1)
-      self.bitmap.draw_text(0, 8, self.bitmap.width, 24, YuriSH::Const::Underwater::TEXT, 1)
+      self.bitmap.draw_text(0, 8, self.bitmap.width, 24, YuriSH::Underwater::TEXT, 1)
     else
       self.bitmap = nil
     end
@@ -418,7 +416,7 @@ class Sprite_OxygenMeter < Sprite
       yfix = self.bitmap.height
     end
     self.x = @player.screen_x - wfix
-    self.y = @player.screen_y - yfix - YuriSH::Const::Underwater::Y_OFFSET
+    self.y = @player.screen_y - yfix - YuriSH::Underwater::Y_OFFSET
     self.z = @player.screen_z
   end
   #--------------------------------------------------------------------------
@@ -437,12 +435,12 @@ class Sprite_OxygenMeter < Sprite
     if @visibility_counter == 0
       @window_openness -= 1 unless @window_openness == 0
     else
-      @window_openness += 1 unless @window_openness == YuriSH::Const::Underwater::HIDE_TIME
+      @window_openness += 1 unless @window_openness == YuriSH::Underwater::HIDE_TIME
     end
     
     # Visibility Counter
     if oxygen_changed?
-      @visibility_counter = YuriSH::Const::Underwater::COUNTER
+      @visibility_counter = YuriSH::Underwater::COUNTER
     else
       @visibility_counter -= 1 unless @visibility_counter == 0
     end
@@ -452,7 +450,7 @@ class Sprite_OxygenMeter < Sprite
   #--------------------------------------------------------------------------
   def update_opacity
     return unless self.visible
-    new_op = 255.0 * (@window_openness.to_f / YuriSH::Const::Underwater::HIDE_TIME.to_f)
+    new_op = 255.0 * (@window_openness.to_f / YuriSH::Underwater::HIDE_TIME.to_f)
     self.opacity = new_op * (@player.opacity / 255.0)
     @@_visible = self.opacity == 255
   end
@@ -467,7 +465,7 @@ class RPG::BaseItem
   # * Gets Oxygen Params From Regex
   #--------------------------------------------------------------------------
   def get_oxygen_params
-    res = @note.scan(YuriSH::Const::Underwater::OXYGEN_REGEX)
+    res = @note.scan(YuriSH::Underwater::OXYGEN_REGEX)
     res.each do |x|
       case x[0]
       when "mult"
@@ -505,7 +503,7 @@ class RPG::Item < RPG::UsableItem
   #--------------------------------------------------------------------------
   def oxygen_restore
     if @ox_restore.nil?
-      @ox_restore = (note =~ YuriSH::Const::Underwater::OXYGEN_ITEM_REGEX ? ox_calc($1) : 0)
+      @ox_restore = (note =~ YuriSH::Underwater::OXYGEN_ITEM_REGEX ? ox_calc($1) : 0)
     end
     @ox_restore
   end
@@ -651,8 +649,8 @@ class Game_Map
   # * Set Water Parameters For Player
   #--------------------------------------------------------------------------
   def set_player_water_params
-    wl = @map.note =~ YuriSH::Const::Underwater::Y_REGEX ? $1.to_i : -1
-    su = @map.note =~ YuriSH::Const::Underwater::START_REGEX ? true : false
+    wl = @map.note =~ YuriSH::Underwater::Y_REGEX ? $1.to_i : -1
+    su = @map.note =~ YuriSH::Underwater::START_REGEX ? true : false
     $game_player.water_level = wl
     $game_player.underwater = su
     $game_player._set_underwater_debounce(su)
@@ -782,9 +780,9 @@ class Game_Player < Game_Character
     initialize_yurish_undwtr
     refresh_max_oxygen
     @current_oxygen = @max_oxygen
-    @oxygen_lose_counter = YuriSH::Const::Underwater::LOSE_RATE
-    @oxygen_gain_counter = YuriSH::Const::Underwater::GAIN_RATE
-    @drown_damage_counter = YuriSH::Const::Underwater::DAMAGE_RATE
+    @oxygen_lose_counter = YuriSH::Underwater::LOSE_RATE
+    @oxygen_gain_counter = YuriSH::Underwater::GAIN_RATE
+    @drown_damage_counter = YuriSH::Underwater::DAMAGE_RATE
     @underwater = false
     @_underwater = false # debounce value used in jump functions
     @_slowness = false # slows jump down even if REVERSED is true
@@ -839,7 +837,7 @@ class Game_Player < Game_Character
   # * Returns Max Oxygen (Adjusted)
   #--------------------------------------------------------------------------
   def calc_max_oxygen
-    return (YuriSH::Const::Underwater::MAX_OXYGEN.to_f * max_oxygen_mult + max_oxygen_add).round.to_i
+    return (YuriSH::Underwater::MAX_OXYGEN.to_f * max_oxygen_mult + max_oxygen_add).round.to_i
   end
   #--------------------------------------------------------------------------
   # * Refresh Max Oxygen
@@ -869,7 +867,7 @@ class Game_Player < Game_Character
     if @current_oxygen == 0
       @drown_damage_counter -= 1 unless @drown_damage_counter == 0
     else
-      @drown_damage_counter = YuriSH::Const::Underwater::DAMAGE_RATE
+      @drown_damage_counter = YuriSH::Underwater::DAMAGE_RATE
     end
   end
   #--------------------------------------------------------------------------
@@ -878,12 +876,12 @@ class Game_Player < Game_Character
   def update_drowning
     return unless @underwater
     return if @drown_damage_counter > 0
-    @drown_damage_counter = YuriSH::Const::Underwater::DAMAGE_RATE
+    @drown_damage_counter = YuriSH::Underwater::DAMAGE_RATE
     
-    dmg_to_deal = YuriSH::Const::Underwater::DAMAGE
+    dmg_to_deal = YuriSH::Underwater::DAMAGE
     return if dmg_to_deal == 0
     
-    drowning_kills = YuriSH::Const::Underwater::DROWN_KILL
+    drowning_kills = YuriSH::Underwater::DROWN_KILL
     
     unless drowning_kills
       all_at_one_hp = $game_party.members.inject(true) do |r, v|
@@ -892,7 +890,7 @@ class Game_Player < Game_Character
       return if all_at_one_hp
     end
     
-    anm_to_play = YuriSH::Const::Underwater::ANIMATION
+    anm_to_play = YuriSH::Underwater::ANIMATION
     @animation_id = anm_to_play if anm_to_play > 0
     
     $game_party.members.each do |member|
@@ -908,14 +906,14 @@ class Game_Player < Game_Character
       return if @current_oxygen == 0
       if @oxygen_lose_counter == 0
         add_oxygen(-1)
-        @oxygen_lose_counter = YuriSH::Const::Underwater::LOSE_RATE
+        @oxygen_lose_counter = YuriSH::Underwater::LOSE_RATE
       end
     else
       @oxygen_gain_counter -= 1 unless @oxygen_gain_counter == 0
       return if @current_oxygen == @max_oxygen
       if @oxygen_gain_counter == 0
         add_oxygen(+1)
-        @oxygen_gain_counter = YuriSH::Const::Underwater::GAIN_RATE
+        @oxygen_gain_counter = YuriSH::Underwater::GAIN_RATE
       end
     end
   end
@@ -923,14 +921,14 @@ class Game_Player < Game_Character
   # * Checks If Player Went Underwater
   #--------------------------------------------------------------------------
   def update_underwater_state
-    case YuriSH::Const::Underwater::MODE
+    case YuriSH::Underwater::MODE
     when :y_level
       return if @water_level < 0
       @_slowness = ((@y - @water_level) >= 0)
-      @underwater = YuriSH::Const::Underwater::REVERSE ? !@_slowness : @_slowness
+      @underwater = YuriSH::Underwater::REVERSE ? !@_slowness : @_slowness
     when :region
-      @_slowness = YuriSH::Const::Underwater::REGIONS.include?(region_id)
-      @underwater = YuriSH::Const::Underwater::REVERSE ? !@_slowness : @_slowness
+      @_slowness = YuriSH::Underwater::REGIONS.include?(region_id)
+      @underwater = YuriSH::Underwater::REVERSE ? !@_slowness : @_slowness
     else
       return
     end
@@ -938,7 +936,7 @@ class Game_Player < Game_Character
   
 # Completely removes this if slow jump is off
 # Slow jump block start
-if YuriSH::Const::Underwater::SLOW_JUMP
+if YuriSH::Underwater::SLOW_JUMP
   #--------------------------------------------------------------------------
   # * Jump
   #     x_plus : x-coordinate plus value
@@ -948,7 +946,7 @@ if YuriSH::Const::Underwater::SLOW_JUMP
     @_underwater = @_slowness
     super(x_plus, y_plus)
     if @_underwater
-      @jump_peak = (@jump_peak * YuriSH::Const::Underwater::JUMP_PEAK).round
+      @jump_peak = (@jump_peak * YuriSH::Underwater::JUMP_PEAK).round
       @jump_count = @jump_peak * 2
     end
   end
@@ -957,7 +955,7 @@ if YuriSH::Const::Underwater::SLOW_JUMP
   #--------------------------------------------------------------------------
   def jump_height
     if @_underwater
-      return (super / YuriSH::Const::Underwater::JUMP_HEIGHT).round
+      return (super / YuriSH::Underwater::JUMP_HEIGHT).round
     end
     super
   end

@@ -12,8 +12,8 @@ $imported = {} if $imported.nil?
 $imported["YuriSH_CustomSkillOrder"] = true
 
 module YuriSH
-  module Const
-    EXPR_SKILL_ORDER = /<skill order: (\d{1,3})>/i
+  module SkillOrder
+    REGEX = /<skill order: (\d{1,3})>/i
   end
 end
 
@@ -26,7 +26,7 @@ class Window_SkillList < Window_Selectable
   # * Get New ID
   #--------------------------------------------------------------------------
   def get_new_id(skill_id)
-    match_data = $data_skills[skill_id].note.match(YuriSH::Const::EXPR_SKILL_ORDER)
+    match_data = $data_skills[skill_id].note.match(YuriSH::SkillOrder::REGEX)
     if match_data.nil?
       return skill_id
     else

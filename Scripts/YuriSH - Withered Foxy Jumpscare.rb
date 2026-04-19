@@ -34,102 +34,100 @@ $imported["YuriSH_FoxyJumpscare"] = true
 # =============================================================================
 
 module YuriSH
-  module Const
-    module Foxy
-      # Z-Index of jumpscare image
-      # Adjust if other scripts use this value and you want jumpscare
-      # to appear above everything else
-      Z_INDEX = 1000
-      # Chance of jumpscare to appear each frame
-      # 1.0 is 100% chance
-      # Default is 0.000001 (Like 1/1000000 chance)
-      CHANCE = 0.000001
-      # Delay between jumpscares (in frames)
-	  # Delay completely prevents jumpscares from appearing
-      # Default is 1200 frames (20 seconds)
-      DELAY = 1200
-      # Sound that will play when jumpscare occurs
-      # Keep as "" if you don't want any sound
-      # Sound must be placed in "Audio/SE" folder
-      SOUND_NAME = "Foxy Jumpscare"
-      # Sound volume (0 - 100)
-      SOUND_VOLUME = 60
-      # Sound pitch (50 - 150)
-      SOUND_PITCH = 100
-      # Screen flash color (R, G, B, A)
-      # Each value is 0 - 255
-      # Alpha of 255 - fully opaque
-      # Alpha of 0 - fully transparent
-	  # Set Alpha to 0 to disable screen flash
-      FLASH_COLOR = Color.new(255,0,0,255)
-      # Screen flash duration (in frames)
-      # Default is 120 frames (2 seconds)
-      FLASH_DURATION = 60
-      
-      # Jumpscare spritesheet image name
-      # Must be placed in "Pictures" folder
-      IMAGE = "foxy"
-      #Individual cell size (x, y)
-      CELL_SIZE = {:x => 1024, :y => 768}
-      # Number of cells in the spritesheet (x, y)
-      CELLS = {:x => 2, :y => 7}
-      # Time between cells (in frames)
-	  # Default is 2 frames (1/30 of a second)
-      SPEED = 2
-      # Image scale
-      SCALE = 0.65
-      
-      # If true - jumpscare will process
-      # If false - jumpscare will be disabled
-      @enabled = true
-	  # Set to true to IMMEDIATELY summon a jumpscare
-	  # Will work even if jumpscare is disabled
-      @trigger_immediately = false
-	  
-      #----------------------------------------------------------------------
-      # * Toggles Jumpscare Processing
-      #----------------------------------------------------------------------
-      def self.toggle(value)
-        @enabled = value
-      end
-      #----------------------------------------------------------------------
-      # * Immediately Triggers The Jumpscare
-      #----------------------------------------------------------------------
-	  def self.trigger(value = true)
-		@trigger_immediately = value
-	  end
-      #----------------------------------------------------------------------
-      # * Was Jumpscare Triggered?
-      #----------------------------------------------------------------------
-	  def self.triggered?
-		return @trigger_immediately
-	  end
-      #----------------------------------------------------------------------
-      # * Is Jumpscare Enabled?
-      #----------------------------------------------------------------------
-      def self.enabled?
-        return @enabled
-      end
-      #----------------------------------------------------------------------
-      # * Returns Hash Of Values
-      #----------------------------------------------------------------------
-      def self.get_hash
-        return {
-          :z_index        => YuriSH::Const::Foxy::Z_INDEX,
-          :chance         => YuriSH::Const::Foxy::CHANCE,
-          :delay          => YuriSH::Const::Foxy::DELAY,
-          :sound_name     => YuriSH::Const::Foxy::SOUND_NAME,
-          :sound_volume   => YuriSH::Const::Foxy::SOUND_VOLUME,
-          :sound_pitch    => YuriSH::Const::Foxy::SOUND_PITCH,
-          :flash_color    => YuriSH::Const::Foxy::FLASH_COLOR,
-          :flash_duration => YuriSH::Const::Foxy::FLASH_DURATION,
-          :image          => YuriSH::Const::Foxy::IMAGE,
-          :cell_size      => YuriSH::Const::Foxy::CELL_SIZE,
-          :cells          => YuriSH::Const::Foxy::CELLS,
-          :speed          => YuriSH::Const::Foxy::SPEED,
-          :scale          => YuriSH::Const::Foxy::SCALE,
-        }
-      end
+  module Foxy
+    # Z-Index of jumpscare image
+    # Adjust if other scripts use this value and you want jumpscare
+    # to appear above everything else
+    Z_INDEX = 1000
+    # Chance of jumpscare to appear each frame
+    # 1.0 is 100% chance
+    # Default is 0.000001 (Like 1/1000000 chance)
+    CHANCE = 0.000001
+    # Delay between jumpscares (in frames)
+    # Delay completely prevents jumpscares from appearing
+    # Default is 1200 frames (20 seconds)
+    DELAY = 1200
+    # Sound that will play when jumpscare occurs
+    # Keep as "" if you don't want any sound
+    # Sound must be placed in "Audio/SE" folder
+    SOUND_NAME = "Foxy Jumpscare"
+    # Sound volume (0 - 100)
+    SOUND_VOLUME = 60
+    # Sound pitch (50 - 150)
+    SOUND_PITCH = 100
+    # Screen flash color (R, G, B, A)
+    # Each value is 0 - 255
+    # Alpha of 255 - fully opaque
+    # Alpha of 0 - fully transparent
+    # Set Alpha to 0 to disable screen flash
+    FLASH_COLOR = Color.new(255,0,0,255)
+    # Screen flash duration (in frames)
+    # Default is 120 frames (2 seconds)
+    FLASH_DURATION = 60
+    
+    # Jumpscare spritesheet image name
+    # Must be placed in "Pictures" folder
+    IMAGE = "foxy"
+    #Individual cell size (x, y)
+    CELL_SIZE = {:x => 1024, :y => 768}
+    # Number of cells in the spritesheet (x, y)
+    CELLS = {:x => 2, :y => 7}
+    # Time between cells (in frames)
+    # Default is 2 frames (1/30 of a second)
+    SPEED = 2
+    # Image scale
+    SCALE = 0.65
+    
+    # If true - jumpscare will process
+    # If false - jumpscare will be disabled
+    @enabled = true
+    # Set to true to IMMEDIATELY summon a jumpscare
+    # Will work even if jumpscare is disabled
+    @trigger_immediately = false
+  
+    #----------------------------------------------------------------------
+    # * Toggles Jumpscare Processing
+    #----------------------------------------------------------------------
+    def self.toggle(value)
+      @enabled = value
+    end
+    #----------------------------------------------------------------------
+    # * Immediately Triggers The Jumpscare
+    #----------------------------------------------------------------------
+    def self.trigger(value = true)
+      @trigger_immediately = value
+    end
+    #----------------------------------------------------------------------
+    # * Was Jumpscare Triggered?
+    #----------------------------------------------------------------------
+    def self.triggered?
+      return @trigger_immediately
+    end
+    #----------------------------------------------------------------------
+    # * Is Jumpscare Enabled?
+    #----------------------------------------------------------------------
+    def self.enabled?
+      return @enabled
+    end
+    #----------------------------------------------------------------------
+    # * Returns Hash Of Values
+    #----------------------------------------------------------------------
+    def self.get_hash
+      return {
+        :z_index        => YuriSH::Foxy::Z_INDEX,
+        :chance         => YuriSH::Foxy::CHANCE,
+        :delay          => YuriSH::Foxy::DELAY,
+        :sound_name     => YuriSH::Foxy::SOUND_NAME,
+        :sound_volume   => YuriSH::Foxy::SOUND_VOLUME,
+        :sound_pitch    => YuriSH::Foxy::SOUND_PITCH,
+        :flash_color    => YuriSH::Foxy::FLASH_COLOR,
+        :flash_duration => YuriSH::Foxy::FLASH_DURATION,
+        :image          => YuriSH::Foxy::IMAGE,
+        :cell_size      => YuriSH::Foxy::CELL_SIZE,
+        :cells          => YuriSH::Foxy::CELLS,
+        :speed          => YuriSH::Foxy::SPEED,
+        :scale          => YuriSH::Foxy::SCALE,
+      }
     end
   end
 end
@@ -152,7 +150,7 @@ class Sprite_FoxyJumpscare < Sprite
     @counter = 0
     @debounce_counter = SceneManager.scene.transition_speed
     @frame = -1
-    @enabled = YuriSH::Const::Foxy.enabled?
+    @enabled = YuriSH::Foxy.enabled?
 	@immediate_processing = false
     get_hash_of_data
     cache_image
@@ -163,7 +161,7 @@ class Sprite_FoxyJumpscare < Sprite
   # (Because Constant Names Are So Damn Long)
   #--------------------------------------------------------------------------
   def get_hash_of_data
-    @data = YuriSH::Const::Foxy.get_hash
+    @data = YuriSH::Foxy.get_hash
   end
   #--------------------------------------------------------------------------
   # * Cache Image To Prevent Lag
@@ -175,8 +173,8 @@ class Sprite_FoxyJumpscare < Sprite
   # * Checks If Jumpscare Was Triggered By Hand
   #--------------------------------------------------------------------------
   def check_for_immediate_trigger
-	if YuriSH::Const::Foxy.triggered?
-	  YuriSH::Const::Foxy.trigger(false)
+	if YuriSH::Foxy.triggered?
+	  YuriSH::Foxy.trigger(false)
 	  @immediate_processing = true
 	  init_jumpscare
 	end
@@ -205,7 +203,7 @@ class Sprite_FoxyJumpscare < Sprite
   # * Checks If Enabled State Changes
   #--------------------------------------------------------------------------
   def update_enabled
-    new_val = YuriSH::Const::Foxy.enabled?
+    new_val = YuriSH::Foxy.enabled?
     if new_val != @enabled
       toggle(new_val)
     end
@@ -361,12 +359,12 @@ class Game_Interpreter
   # * Toggle Foxy Jumpscare
   #--------------------------------------------------------------------------
   def toggle_jumpscare(value)
-    YuriSH::Const::Foxy.toggle(value)
+    YuriSH::Foxy.toggle(value)
   end
   #--------------------------------------------------------------------------
   # * Immediately Trigger The Jumpscare
   #--------------------------------------------------------------------------
   def trigger_jumpscare
-	YuriSH::Const::Foxy.trigger
+	YuriSH::Foxy.trigger
   end
 end

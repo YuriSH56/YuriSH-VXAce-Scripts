@@ -18,10 +18,8 @@ $imported = {} if $imported.nil?
 $imported["YuriSH_BattlerWaveEffect"] = true
 
 module YuriSH
-  module Const
-    module BattlerWave
-      REGEX = /<wave: ?(\d+), ?(\d+), ?(\d+), ?(\d+)>/i
-    end
+  module BattlerWave
+    REGEX = /<wave: ?(\d+), ?(\d+), ?(\d+), ?(\d+)>/i
   end
 end
 
@@ -35,7 +33,7 @@ class RPG::Enemy
   # ---------------------------------------------------------------------------
   def wave_params
     if @wave_params.nil?
-      @wave_params = (@note =~ YuriSH::Const::BattlerWave::REGEX ? [$1.to_i, $2.to_i, $3.to_i, $4.to_i] : nil)
+      @wave_params = (@note =~ YuriSH::BattlerWave::REGEX ? [$1.to_i, $2.to_i, $3.to_i, $4.to_i] : nil)
     end
     @wave_params
   end

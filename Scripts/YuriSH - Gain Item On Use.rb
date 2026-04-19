@@ -16,10 +16,8 @@ $imported = {} if $imported.nil?
 $imported["YuriSH_GainItemOnUse"] = true
 
 module YuriSH
-  module Const
-    module GainItem
-      REGEX = /<gain(?: |_)?(item|weapon|armor): ?+(\d+), ?+(-?\d+)>/i
-    end
+  module GainItem
+    REGEX = /<gain(?: |_)?(item|weapon|armor): ?+(\d+), ?+(-?\d+)>/i
   end
 end
 
@@ -34,7 +32,7 @@ class RPG::UsableItem
   def gain_item_list
     if @gain_item_list.nil?
       @gain_item_list = []
-      @note.scan(YuriSH::Const::GainItem::REGEX) do |arr|
+      @note.scan(YuriSH::GainItem::REGEX) do |arr|
         @gain_item_list.append([arr[0].downcase, arr[1].to_i, arr[2].to_i])
       end
     end

@@ -88,60 +88,58 @@ $imported["YuriSH_GlobalHitBar"] = true
 # =============================================================================
 
 module YuriSH
-  module Const
-    module GlobalBar
-      # ===============\/\/ DO NOT CHANGE THIS \/\/=============== #
-      RATE_REGEX    = /<gb rate: ?(\d+\.\d+)>/i
-      COST_REGEX    = /<gb cost: ?(\d+%?)>/i
-      FORMULA_REGEX = /<gb formula: ?(user|target|ally), ?(\d+)>/i
-      # ===============/\/\ DO NOT CHANGE THIS /\/\=============== #
-      
-      NAME          = "EP"    # Global bar name
-      COLOR         = 11      # Global bar name color (also cost text color)
-      GAUGE_COLORS  = [3, 11] # Colors for global bar (top to bottom gradient)
-      GB_MAX        = 100     # Max value for global bar
-      GB_MASK       = "%s%%"  # Mask used to show global bar value
-      WINDOW_POS    = :right  # Position of the window. Can be :left or :right
-      WINDOW_TIME   = 120     # Number of frames global bar window will
-                              # appear for when it's value is changed
-                              # (default is 120 - 2 seconds)
-      ALLY_DAMAGE   = true    # If true - hitting allies (or self) will also
-                              # increase global bar value
-      # -----------------------------------------------------------------------
-      # Default formula used to calculate how many points damage dealer gets.
-      # (skill or item user)
-      # -----------------------------------------------------------------------
-      USER_FORMULA    = "[[(x / 100.0).ceil, 1].max, 10].min"
-      # -----------------------------------------------------------------------
-      # Default formula used to calculate how many points damage reciever gets.
-      # (skill or item target)
-      # -----------------------------------------------------------------------
-      TARGET_FORMULA  = "[[((x / 100.0) ** 2.0).ceil, 1].max, 20].min"
-      # -----------------------------------------------------------------------
-      # Default formula used to calculate points for hitting allies or self.
-      # Uses TARGET_FORMULA by default.
-      # -----------------------------------------------------------------------
-      ALLY_FORMULA  = TARGET_FORMULA
-      # -----------------------------------------------------------------------
-      # List of formulas you can use in skills.
-      # Format: ID => "<formula>", where:
-      #   ID - an integer (1, 2, 3, etc.)
-      #   <formula> - formula.
-      # HINT: Use ''' <formula> ''' for multi-line editing.
-      # NOTE: commas at the end of each item are REQUIRED.
-      # -----------------------------------------------------------------------
-      USER_FORMULAS = {
-        1 => '''
-          if x > 0
-            x / 100.0
-          else
-            0
-          end
-          ''', # multi-line example
-        2 => "x / 100 + a.atk - b.def", # one line
-        3 => "50", # constant expression
-      }
-    end
+  module GlobalBar
+    # ===============\/\/ DO NOT CHANGE THIS \/\/=============== #
+    RATE_REGEX    = /<gb rate: ?(\d+\.\d+)>/i
+    COST_REGEX    = /<gb cost: ?(\d+%?)>/i
+    FORMULA_REGEX = /<gb formula: ?(user|target|ally), ?(\d+)>/i
+    # ===============/\/\ DO NOT CHANGE THIS /\/\=============== #
+    
+    NAME          = "EP"    # Global bar name
+    COLOR         = 11      # Global bar name color (also cost text color)
+    GAUGE_COLORS  = [3, 11] # Colors for global bar (top to bottom gradient)
+    GB_MAX        = 100     # Max value for global bar
+    GB_MASK       = "%s%%"  # Mask used to show global bar value
+    WINDOW_POS    = :right  # Position of the window. Can be :left or :right
+    WINDOW_TIME   = 120     # Number of frames global bar window will
+                            # appear for when it's value is changed
+                            # (default is 120 - 2 seconds)
+    ALLY_DAMAGE   = true    # If true - hitting allies (or self) will also
+                            # increase global bar value
+    # -----------------------------------------------------------------------
+    # Default formula used to calculate how many points damage dealer gets.
+    # (skill or item user)
+    # -----------------------------------------------------------------------
+    USER_FORMULA    = "[[(x / 100.0).ceil, 1].max, 10].min"
+    # -----------------------------------------------------------------------
+    # Default formula used to calculate how many points damage reciever gets.
+    # (skill or item target)
+    # -----------------------------------------------------------------------
+    TARGET_FORMULA  = "[[((x / 100.0) ** 2.0).ceil, 1].max, 20].min"
+    # -----------------------------------------------------------------------
+    # Default formula used to calculate points for hitting allies or self.
+    # Uses TARGET_FORMULA by default.
+    # -----------------------------------------------------------------------
+    ALLY_FORMULA  = TARGET_FORMULA
+    # -----------------------------------------------------------------------
+    # List of formulas you can use in skills.
+    # Format: ID => "<formula>", where:
+    #   ID - an integer (1, 2, 3, etc.)
+    #   <formula> - formula.
+    # HINT: Use ''' <formula> ''' for multi-line editing.
+    # NOTE: commas at the end of each item are REQUIRED.
+    # -----------------------------------------------------------------------
+    USER_FORMULAS = {
+      1 => '''
+        if x > 0
+          x / 100.0
+        else
+          0
+        end
+        ''', # multi-line example
+      2 => "x / 100 + a.atk - b.def", # one line
+      3 => "50", # constant expression
+    }
   end
 end
 
@@ -184,7 +182,7 @@ class Window_GlobalBar < Window_Base
   # * Get Rate Value As Formatted String
   #--------------------------------------------------------------------------
   def format_rate_string
-    return YuriSH::Const::GlobalBar::GB_MASK % (@gb_rate * 100).round.to_s
+    return YuriSH::GlobalBar::GB_MASK % (@gb_rate * 100).round.to_s
   end
   #--------------------------------------------------------------------------
   # * Draw Vertical Gauge
@@ -215,13 +213,13 @@ class Window_GlobalBar < Window_Base
   #--------------------------------------------------------------------------
   def create_contents
     super
-    change_color(text_color(YuriSH::Const::GlobalBar::COLOR))
+    change_color(text_color(YuriSH::GlobalBar::COLOR))
     draw_text(4, 0, contents_width - 8, line_height,
-      YuriSH::Const::GlobalBar::NAME, 1)
+      YuriSH::GlobalBar::NAME, 1)
     
     draw_gauge_vertical(contents_width / 2.0 - 16, line_height, 32, line_height * 3, @gb_rate,
-      text_color(YuriSH::Const::GlobalBar::GAUGE_COLORS[0]),
-      text_color(YuriSH::Const::GlobalBar::GAUGE_COLORS[1]))
+      text_color(YuriSH::GlobalBar::GAUGE_COLORS[0]),
+      text_color(YuriSH::GlobalBar::GAUGE_COLORS[1]))
       
     change_color(normal_color)
     draw_text(4, line_height * 2,
@@ -233,7 +231,7 @@ class Window_GlobalBar < Window_Base
   def check_gb_rate
     if $game_party.gb_rate != @gb_rate
       @gb_rate = $game_party.gb_rate
-      @counter = YuriSH::Const::GlobalBar::WINDOW_TIME
+      @counter = YuriSH::GlobalBar::WINDOW_TIME
       refresh
     end
   end
@@ -295,7 +293,7 @@ class RPG::BaseItem
   # ---------------------------------------------------------------------------
   def gb_rate
     if @gb_rate.nil?
-      @gb_rate = (@note =~ YuriSH::Const::GlobalBar::RATE_REGEX ? $1.to_f : 1.0)
+      @gb_rate = (@note =~ YuriSH::GlobalBar::RATE_REGEX ? $1.to_f : 1.0)
     end
     @gb_rate
   end
@@ -316,15 +314,15 @@ class RPG::UsableItem < RPG::BaseItem
   # * Get Formulas From Note Tags
   # ---------------------------------------------------------------------------
   def get_formulas_from_notetags
-    res = @note.scan(YuriSH::Const::GlobalBar::FORMULA_REGEX)
+    res = @note.scan(YuriSH::GlobalBar::FORMULA_REGEX)
     res.each do |x|
       case x[0]
       when "user"
-        @gb_user_formula = YuriSH::Const::GlobalBar::USER_FORMULAS[x[1].to_i]
+        @gb_user_formula = YuriSH::GlobalBar::USER_FORMULAS[x[1].to_i]
       when "target"
-        @gb_target_formula = YuriSH::Const::GlobalBar::USER_FORMULAS[x[1].to_i]
+        @gb_target_formula = YuriSH::GlobalBar::USER_FORMULAS[x[1].to_i]
       when "ally"
-        @gb_ally_formula = YuriSH::Const::GlobalBar::USER_FORMULAS[x[1].to_i]
+        @gb_ally_formula = YuriSH::GlobalBar::USER_FORMULAS[x[1].to_i]
       end
     end
     if self.is_a?(RPG::Item)
@@ -332,9 +330,9 @@ class RPG::UsableItem < RPG::BaseItem
       @gb_target_formula  = "" if @gb_target_formula.nil?
       @gb_ally_formula    = "" if @gb_ally_formula.nil?
     else
-      @gb_user_formula    = YuriSH::Const::GlobalBar::USER_FORMULA if @gb_user_formula.nil?
-      @gb_target_formula  = YuriSH::Const::GlobalBar::TARGET_FORMULA if @gb_target_formula.nil?
-      @gb_ally_formula    = YuriSH::Const::GlobalBar::ALLY_FORMULA if @gb_ally_formula.nil?
+      @gb_user_formula    = YuriSH::GlobalBar::USER_FORMULA if @gb_user_formula.nil?
+      @gb_target_formula  = YuriSH::GlobalBar::TARGET_FORMULA if @gb_target_formula.nil?
+      @gb_ally_formula    = YuriSH::GlobalBar::ALLY_FORMULA if @gb_ally_formula.nil?
     end
   end
   # ---------------------------------------------------------------------------
@@ -389,7 +387,7 @@ class RPG::Skill < RPG::UsableItem
   def extract_gb_cost(str_value)
     if str_value.include?("%")
       @percent_value = str_value.to_i
-      return ((str_value.to_f / 100.0) * YuriSH::Const::GlobalBar::GB_MAX).to_i
+      return ((str_value.to_f / 100.0) * YuriSH::GlobalBar::GB_MAX).to_i
     else
       @percent_value = 0
       return str_value.to_i
@@ -400,7 +398,7 @@ class RPG::Skill < RPG::UsableItem
   # ---------------------------------------------------------------------------
   def gb_cost
     if @gb_cost.nil?
-      @gb_cost = (@note =~ YuriSH::Const::GlobalBar::COST_REGEX ? extract_gb_cost($1) : 0)
+      @gb_cost = (@note =~ YuriSH::GlobalBar::COST_REGEX ? extract_gb_cost($1) : 0)
     end
     @gb_cost
   end
@@ -448,7 +446,7 @@ class Game_Unit
   # * Set Global Bar Value
   #--------------------------------------------------------------------------
   def set_gb_value(value)
-    @gb_value = [[value, YuriSH::Const::GlobalBar::GB_MAX].min, 0].max
+    @gb_value = [[value, YuriSH::GlobalBar::GB_MAX].min, 0].max
   end
   #--------------------------------------------------------------------------
   # * Add Global Bar Value
@@ -460,7 +458,7 @@ class Game_Unit
   # * Get Global Bar Fill Rate
   #--------------------------------------------------------------------------
   def gb_rate
-    return (@gb_value.to_f / YuriSH::Const::GlobalBar::GB_MAX.to_f)
+    return (@gb_value.to_f / YuriSH::GlobalBar::GB_MAX.to_f)
   end
 end
 
@@ -531,7 +529,7 @@ class Game_Battler < Game_BattlerBase
   def make_damage_value(user, item)
     make_damage_value_yurish_1y9lv(user, item)
     if self.class == user.class
-      if YuriSH::Const::GlobalBar::ALLY_DAMAGE
+      if YuriSH::GlobalBar::ALLY_DAMAGE
         calculate_gb_for_ally(@result.hp_damage, user, self, $game_variables, item)
       end
       return
@@ -614,7 +612,7 @@ class Window_SkillList < Window_Selectable
   alias draw_skill_cost_1y9lv draw_skill_cost
   def draw_skill_cost(rect, skill)
     if @actor.skill_gb_cost(skill) > 0
-      change_color(text_color(YuriSH::Const::GlobalBar::COLOR), enable?(skill))
+      change_color(text_color(YuriSH::GlobalBar::COLOR), enable?(skill))
       if skill.percent_value > 0
         draw_text(rect, skill.percent_value.to_s + "%", 2)
       else
@@ -643,7 +641,7 @@ class Scene_Battle < Scene_Base
   # * Create Global Bar Window
   #--------------------------------------------------------------------------
   def create_gb_window
-    wx = YuriSH::Const::GlobalBar::WINDOW_POS == :left ? 0 : Graphics.width - 64
+    wx = YuriSH::GlobalBar::WINDOW_POS == :left ? 0 : Graphics.width - 64
     @gb_window = Window_GlobalBar.new(wx, Graphics.height - 240)
   end
   #--------------------------------------------------------------------------

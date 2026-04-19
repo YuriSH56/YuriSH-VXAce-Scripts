@@ -16,38 +16,36 @@ $imported["YuriSH_MoreWeatherEffects"] = true
 # =============================================================================
 
 module YuriSH
-  module Const
-    module Weather
-      # -----------------------------------------------------------------------
-      # Here is where you add new weather effects.
-      # Format is as follows:
-      # -----------------------------------------------------------------------
-      # :name   =>    ["texture_name", x_speed, y_speed, opacity_rate, dimness]
-      # -----------------------------------------------------------------------
-      # :name           - A UNIQUE identifier of the effect.
-      #                   There should be no duplicate names otherwise newer
-      #                   effects with overwrite older ones.
-      # "texture_name"  - Name if the image in "Weather" folder.
-      # x_speed         - Horizontal speed of the particle (pixels per second).
-      #                   Positive number means moving to the right,
-      #                   negative - moving to the left.
-      #                   Must be an integer.
-      # y_speed         - Same as "x_speed" but for vertical movement.
-      #                   Positive number - moving upwards,
-      #                   negative number - moving downwards.
-      # opacity_rate    - Rate at which opacity is changed.
-      #                   Should be a negative number.
-      #                   Sprite gets removed when its opacity reaches
-      #                   certain threshold (~64). Keep as -12 if unsure.
-      # dimness         - Specifies how dark screen will get.
-      # -----------------------------------------------------------------------
-      EFFECTS = {
-      # OG weather effects
-      :rain     =>      ["rain",    -1,     6,    -12,    6],
-      :storm    =>      ["storm",   -3,     6,    -12,    6],
-      :snow     =>      ["snow",    -1,     3,    -12,    6]
-      }
-    end
+  module Weather
+    # -----------------------------------------------------------------------
+    # Here is where you add new weather effects.
+    # Format is as follows:
+    # -----------------------------------------------------------------------
+    # :name   =>    ["texture_name", x_speed, y_speed, opacity_rate, dimness]
+    # -----------------------------------------------------------------------
+    # :name           - A UNIQUE identifier of the effect.
+    #                   There should be no duplicate names otherwise newer
+    #                   effects with overwrite older ones.
+    # "texture_name"  - Name if the image in "Weather" folder.
+    # x_speed         - Horizontal speed of the particle (pixels per second).
+    #                   Positive number means moving to the right,
+    #                   negative - moving to the left.
+    #                   Must be an integer.
+    # y_speed         - Same as "x_speed" but for vertical movement.
+    #                   Positive number - moving upwards,
+    #                   negative number - moving downwards.
+    # opacity_rate    - Rate at which opacity is changed.
+    #                   Should be a negative number.
+    #                   Sprite gets removed when its opacity reaches
+    #                   certain threshold (~64). Keep as -12 if unsure.
+    # dimness         - Specifies how dark screen will get.
+    # -----------------------------------------------------------------------
+    EFFECTS = {
+    # OG weather effects
+    :rain     =>      ["rain",    -1,     6,    -12,    6],
+    :storm    =>      ["storm",   -3,     6,    -12,    6],
+    :snow     =>      ["snow",    -1,     3,    -12,    6]
+    }
   end
 end
 
@@ -121,7 +119,7 @@ class Spriteset_Weather
     if type == :none
       @weather_bitmap = nil
     else
-      @weather_bitmap = Cache.bitmap(YuriSH::Const::Weather::EFFECTS[type][0])
+      @weather_bitmap = Cache.bitmap(YuriSH::Weather::EFFECTS[type][0])
     end
   end
   #--------------------------------------------------------------------------
@@ -135,7 +133,7 @@ class Spriteset_Weather
   # * Get Dimness
   #--------------------------------------------------------------------------
   def dimness
-    mult = YuriSH::Const::Weather::EFFECTS[type][4]
+    mult = YuriSH::Weather::EFFECTS[type][4]
     (@power * mult).to_i
   end
   #--------------------------------------------------------------------------
@@ -153,7 +151,7 @@ class Spriteset_Weather
   # * Update Sprite Weather
   #--------------------------------------------------------------------------
   def update_sprite_weather(sprite)
-    weather_data = YuriSH::Const::Weather::EFFECTS[type]
+    weather_data = YuriSH::Weather::EFFECTS[type]
     sprite.bitmap = @weather_bitmap
     sprite.x += weather_data[1]
     sprite.y += weather_data[2]

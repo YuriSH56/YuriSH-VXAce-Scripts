@@ -37,18 +37,16 @@ $imported["YuriSH_ItemTags"] = true
 # =============================================================================
 
 module YuriSH
-  module Const
-    module ItemTags
-      # =============== DO NOT CHANGE THIS =============== #
-      REGEX       = /<tags: ?(.+)>/i
-      TYPE_ITEM   = :item
-      TYPE_ARMOR  = :armor
-      TYPE_WEAPON = :weapon
-      TYPE_NONE   = :none
-      # =============== DO NOT CHANGE THIS =============== #
-      NULL_ITEM_TEXT = "Nothing..."   # Text to show if no items in list
-      NULL_ITEM_ICON = 17             # Icon for text above
-    end
+  module ItemTags
+    # =============== DO NOT CHANGE THIS =============== #
+    REGEX       = /<tags: ?(.+)>/i
+    TYPE_ITEM   = :item
+    TYPE_ARMOR  = :armor
+    TYPE_WEAPON = :weapon
+    TYPE_NONE   = :none
+    # =============== DO NOT CHANGE THIS =============== #
+    NULL_ITEM_TEXT = "Nothing..."   # Text to show if no items in list
+    NULL_ITEM_ICON = 17             # Icon for text above
   end
 end
 
@@ -66,7 +64,7 @@ class RPG::BaseItem
   # ---------------------------------------------------------------------------
   def tags
     if @tags.nil?
-      @tags = (@note =~ YuriSH::Const::ItemTags::REGEX ? split_tags($1) : [])
+      @tags = (@note =~ YuriSH::ItemTags::REGEX ? split_tags($1) : [])
     end
     return @tags
   end
@@ -154,9 +152,9 @@ class Window_TagItemList < Window_ItemList
   # * Draw Null Item
   #-------------------------------------------------------------------------- 
   def draw_null_item(x, y, enabled = true, width = 172)
-    draw_icon(YuriSH::Const::ItemTags::NULL_ITEM_ICON, x, y, enabled)
+    draw_icon(YuriSH::ItemTags::NULL_ITEM_ICON, x, y, enabled)
     change_color(normal_color, enabled)
-    draw_text(x + 24, y, width, line_height, YuriSH::Const::ItemTags::NULL_ITEM_TEXT)
+    draw_text(x + 24, y, width, line_height, YuriSH::ItemTags::NULL_ITEM_TEXT)
   end
   #--------------------------------------------------------------------------
   # * Refresh
@@ -245,19 +243,19 @@ class Scene_Map < Scene_Base
     return if (@tag_var_type_id <= 0 or @tag_var_id <= 0)
     if item
       if item.is_a?(RPG::Item)
-        $game_variables[@tag_var_type_id] = YuriSH::Const::ItemTags::TYPE_ITEM
+        $game_variables[@tag_var_type_id] = YuriSH::ItemTags::TYPE_ITEM
       elsif item.is_a?(RPG::Armor)
-        $game_variables[@tag_var_type_id] = YuriSH::Const::ItemTags::TYPE_ARMOR
+        $game_variables[@tag_var_type_id] = YuriSH::ItemTags::TYPE_ARMOR
       elsif item.is_a?(RPG::Weapon)
-        $game_variables[@tag_var_type_id] = YuriSH::Const::ItemTags::TYPE_WEAPON
+        $game_variables[@tag_var_type_id] = YuriSH::ItemTags::TYPE_WEAPON
       else
-        $game_variables[@tag_var_type_id] = YuriSH::Const::ItemTags::TYPE_NONE
+        $game_variables[@tag_var_type_id] = YuriSH::ItemTags::TYPE_NONE
         $game_variables[@tag_var_id] = 0
         return
       end
       $game_variables[@tag_var_id] = item.id
     else
-      $game_variables[@tag_var_type_id] = YuriSH::Const::ItemTags::TYPE_NONE
+      $game_variables[@tag_var_type_id] = YuriSH::ItemTags::TYPE_NONE
       $game_variables[@tag_var_id] = 0
     end
   end
@@ -307,11 +305,11 @@ class Game_Interpreter
     t_type = $game_variables[var_type]
     t_var = $game_variables[var_id]
     case t_type
-    when YuriSH::Const::ItemTags::TYPE_ITEM
+    when YuriSH::ItemTags::TYPE_ITEM
       return $data_items[t_var]
-    when YuriSH::Const::ItemTags::TYPE_ARMOR
+    when YuriSH::ItemTags::TYPE_ARMOR
       return $data_armors[t_var]
-    when YuriSH::Const::ItemTags::TYPE_WEAPON
+    when YuriSH::ItemTags::TYPE_WEAPON
       return $data_weapons[t_var]
     else
       return nil
