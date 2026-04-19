@@ -14,6 +14,9 @@
 # For more info, check "Sprite" class in F1 Manual.
 # =============================================================================
 
+$imported = {} if $imported.nil?
+$imported["YuriSH_BattlerWaveEffect"] = true
+
 module YuriSH
   module Const
     module BattlerWave

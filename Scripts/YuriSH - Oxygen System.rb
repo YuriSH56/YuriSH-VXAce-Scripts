@@ -80,6 +80,9 @@
 # * $game_player.max_oxygen     - Returns max oxygen with item adjustments.
 # =============================================================================
 
+$imported = {} if $imported.nil?
+$imported["YuriSH_OxygenSystem"] = true
+
 # =============================================================================
 # CONFIGURATION BEGIN
 # =============================================================================
