@@ -13,6 +13,9 @@
 #     Player followers now also jump slower underwater.
 #     Added events that restore oxygen while you stand on them.
 #     Added a way to stop oxygen depletion completely.
+#
+# * Version 1.1.1 (04.21.2026)
+#     Added an option to stop oxygen depletion when player can't move.
 # -----------------------------------------------------------------------------
 # * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
@@ -176,6 +179,10 @@ module YuriSH
     # (DEFAULT: false)
     REVERSE = false
     
+    # If true - you won't lose oxygen while player is unable to move.
+    # (DEFAULT: true)
+    STOP_IF_CANT_MOVE = true
+    
     # Array of regions that count as water.
     REGIONS = [40,41,42,43]
     
@@ -211,9 +218,9 @@ module YuriSH
     # (DEFAULT: 100)
     MAX_OXYGEN = 100
     
-    # Frames window will take to hide or appear.
-    # (DEFAULT: 10)
-    HIDE_TIME = 10
+    # Frames window will take to appear or disappear.
+    # (DEFAULT: 5)
+    HIDE_TIME = 5
     
     # Rate (in frames) at which you lose one point of oxygen.
     # (DEFAULT: 10)
@@ -986,6 +993,12 @@ class Game_Player < Game_Character
     $game_party.leader.equips.any? { |x| x and x.breathe_underwater == true }
   end
   #--------------------------------------------------------------------------
+  # * Returns True If Player Can Move
+  #--------------------------------------------------------------------------
+  def player_can_move?
+    return ((moving? or movable?) and !$game_map.interpreter.running?)
+  end
+  #--------------------------------------------------------------------------
   # * Returns Array Of Objects That Have Oxygen Features
   #--------------------------------------------------------------------------
   def oxygen_features
@@ -1027,6 +1040,9 @@ class Game_Player < Game_Character
   def update
     update_yurish_undwtr
     if @oxygen_enabled
+      if YuriSH::Underwater::STOP_IF_CANT_MOVE
+        return unless player_can_move?
+      end
       update_oxygen_counter
       update_underwater_state
       update_drowning_counter
