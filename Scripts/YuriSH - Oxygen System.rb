@@ -6,6 +6,13 @@
 # -----------------------------------------------------------------------------
 # * Version 1.0 (04.13.2026)
 #     Initial release.
+#
+# * Version 1.1 (04.21.2026)
+#     Fixed oxygen meter not disposing properly between map transitions.
+#     Fixed crash caused by disposing window skin bitmap.
+#     Player followers now also jump slower underwater.
+#     Added events that restore oxygen while you stand on them.
+#     Added a way to stop oxygen depletion completely.
 # -----------------------------------------------------------------------------
 # * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
@@ -23,30 +30,45 @@
 # -----------------------------------------------------------------------------
 # * NOTE TAGS
 # -----------------------------------------------------------------------------
-# Note tags used in map's note tag section:
-# * <water level: x>  - Sets up Y-level of water for that map.
-#                       "x" can be any positive integer (0, 1, 2, etc.)
-#                       If not set - it defaults to -1 (no water for level).
-#                       NOTE: This value is used only
-#                       if MODE is set to :y_level.
-# * <underwater>      - Directly sets player's underwater state to true.
-#                       Can be used if map is fully submerged and there is no
-#                       surface.
-#                       If not set - nothing will happen.
+# MAP'S NOTE TAGS:
+# (Used in map's note tags area)
+# * <water level: x>
+#   Sets up Y-level of water for that map.
+#   "x" can be any positive integer (0, 1, 2, etc.)
+#   If not set - it defaults to -1 (no water for level).
+#   NOTE: This value is used only if MODE is set to :y_level.
 #
-# Oxygen value tags:
+# * <underwater>
+#   Directly sets player's underwater state to true.
+#   Can be used if map is fully submerged and there is no surface.
+#   If not set - nothing will happen.
+#
+# ALL ITEM TAGS:
 # (Can be used in: Actors, Classes, Armors, Weapons, States)
-# * <oxygen add: x>     - Adds x amount of points to max oxygen value.
-#                         "x" should be an integer, positive or negative.
-# * <oxygen mult: x>    - Multiplies max oxygen by x.
-#                         "x" should be a positive float.
+# * <oxygen add: x>
+#   Adds x amount of points to max oxygen value.
+#   "x" should be an integer, positive or negative.
 #
-# Item-only tags:
-# * <oxygen restore: x> - Using the item will restore x points of oxygen.
-#                         "x" can be an integer or a percentage value,
-#                         positive or negative.
-#                         NOTE: oxygen will be restored even if item is not
-#                         used on party leader.
+# * <oxygen mult: x>
+#   Multiplies max oxygen by x.
+#   "x" should be a positive float.
+#
+# EQUIP ITEM TAGS:
+# (Can be used in: Armors, Weapons)
+# * <breathe underwater>
+#   Player will not lose oxygen underwater if this item is equipped.
+#
+# ITEM TAGS:
+# (Can be used only in Items)
+# * <oxygen restore: x>
+#   Using the item will restore x points of oxygen.
+#   "x" can be an integer or a percentage value, positive or negative.
+#   NOTE: oxygen will be restored even if item is not used on party leader.
+#
+# EVENT TAGS:
+# (Should be placed in a comment ON FIRST EVENT PAGE)
+# * <event oxygen restore>
+#   Event with this tag will restore oxygen while player stands on it.
 # -----------------------------------------------------------------------------
 # * NOTE TAG EXAMPLES
 # -----------------------------------------------------------------------------
@@ -62,22 +84,31 @@
 # -----------------------------------------------------------------------------
 # * SCRIPT CALLS
 # -----------------------------------------------------------------------------
-# * $game_player.current_oxygen - Returns current amount of oxygen player has.
+# * $game_player.current_oxygen
+#   Returns current amount of oxygen player has.
 #
-# * $game_player.underwater     - Returns whether player is underwater or not.
-#                                 If MODE is set to :none, this value can be
-#                                 changed manually.
-# * $game_player.underwater     = true/false
+# * $game_player.underwater
+#   Returns whether player is underwater or not.
+#   If MODE is set to :none, this value can be changed manually.
+# * $game_player.underwater = true/false
 #
-# * $game_player.water_level    - Returns Y-level of water. Can be set
-#                                 manually at any time.
-# * $game_player.water_level    = x (same rules apply as for note tag)
+# * $game_player.water_level
+#   Returns Y-level of water. Can be set manually at any time.
+# * $game_player.water_level = x (same rules apply as for note tag)
 #
-# * $game_player.oxygen_enabled - Returns true if oxygen is enabled.
-#                                 Can be set to false to disable oxygen mechanic.
+# * $game_player.oxygen_enabled
+#   Returns true if oxygen is enabled.
+#   Can be set to false to disable oxygen mechanic.
 # * $game_player.oxygen_enabled = true/false
 #
-# * $game_player.max_oxygen     - Returns max oxygen with item adjustments.
+# * $game_player.max_oxygen
+#   Returns max oxygen with item adjustments.
+#
+# * $game_player.breathe_underwater
+#   Returns true if player has any item equipped that gives underwater breath.
+#
+# * $game_player.in_bubble_column
+#   Returns true if player stands in event that restores oxygen.
 # =============================================================================
 
 $imported = {} if $imported.nil?
@@ -102,11 +133,17 @@ module YuriSH
     # Item regex for restoring oxygen upon item use
     OXYGEN_ITEM_REGEX = /<oxygen restore: ?(-?\d+%?)>/i
     
+    # Item regex that stops drowning underwater.
+    BREATHE_REGEX = /<breathe underwater>/i
+    
+    # Event regex for restoring oxygen.
+    EVENT_REGEX = /<event oxygen restore>/i
+    
     # Mask used to display oxygen count if SHOW_MODE is set to :percentage.
     SHOW_MASK = "%s%%"
     
     # Magic number used for slow jump effect
-    JUMP_PEAK = 1.6
+    JUMP_PEAK = 1.4
     
     # Magic number used for slow jump effect
     JUMP_HEIGHT = 2.8
@@ -140,7 +177,7 @@ module YuriSH
     REVERSE = false
     
     # Array of regions that count as water.
-    REGIONS = [40,41]
+    REGIONS = [40,41,42,43]
     
     # Colors used for oxygen gauge, taken from "Window" texture.
     # Final gauge color will be a gradient from left color to right color.
@@ -202,7 +239,7 @@ module YuriSH
     
     # ID of an animation that plays upon drowning damage.
     # Set to 0 to disable.
-    ANIMATION = 754
+    ANIMATION = 123
   end
 end
 
@@ -327,7 +364,6 @@ class Sprite_OxygenMeter < Sprite
   # * Free
   #--------------------------------------------------------------------------
   def dispose
-    @window_skin.dispose if @window_skin
     @window_background.dispose if @window_background
     @window_frame.dispose if @window_frame
     bitmap.dispose if bitmap
@@ -526,6 +562,28 @@ class RPG::Item < RPG::UsableItem
 end
 
 #==============================================================================
+# ** RPG::EquipItem
+#==============================================================================
+
+class RPG::EquipItem < RPG::BaseItem
+  #--------------------------------------------------------------------------
+  # * Get If Item Gives Underwater Breath
+  #--------------------------------------------------------------------------
+  def breathe_underwater
+    if @breathe_underwater.nil?
+      @breathe_underwater = (note =~ YuriSH::Underwater::BREATHE_REGEX ? true : false)
+    end
+    @breathe_underwater
+  end
+  #--------------------------------------------------------------------------
+  # * Set If Item Gives Underwater Breath
+  #--------------------------------------------------------------------------
+  def breathe_underwater=(value)
+    @breathe_underwater = value
+  end
+end
+
+#==============================================================================
 # ** DataManager
 #==============================================================================
 
@@ -551,12 +609,12 @@ end
 
 class Spriteset_Map
   #--------------------------------------------------------------------------
-  # * Create Character Sprite
+  # * Create Viewport
   #--------------------------------------------------------------------------
-  alias create_characters_yurish_undwtr create_characters
-  def create_characters
+  alias create_viewports_yurish_undwtr create_viewports
+  def create_viewports
+    create_viewports_yurish_undwtr
     create_oxygen_meter
-    create_characters_yurish_undwtr
   end
   #--------------------------------------------------------------------------
   # * Dispose
@@ -654,6 +712,7 @@ class Game_Map
     $game_player.water_level = wl
     $game_player.underwater = su
     $game_player._set_underwater_debounce(su)
+    $game_player.followers.each { |x| x._set_underwater_debounce(su) }
     p "Water Level: " + wl.to_s
     p "Start Underwater: " + su.to_s
   end
@@ -760,6 +819,101 @@ class Game_Actor < Game_Battler
 end
 
 #==============================================================================
+# ** Game_Event
+#==============================================================================
+
+class Game_Event < Game_Character
+  #--------------------------------------------------------------------------
+  # * Get RPG::Event
+  #--------------------------------------------------------------------------
+  def event
+    @event
+  end
+end
+
+#==============================================================================
+# ** Game_Follower
+#==============================================================================
+
+class Game_Follower < Game_Character
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :underwater       # Is follower underwater
+  #--------------------------------------------------------------------------
+  # * Object Initialization
+  #--------------------------------------------------------------------------
+  alias initialize_yurish_undwtr initialize
+  def initialize(member_index, preceding_character)
+    initialize_yurish_undwtr(member_index, preceding_character)
+    @underwater = false
+    @_underwater = false # debounce value used in jump functions
+    @_slowness = false # slows jump down even if REVERSED is true
+  end
+  #--------------------------------------------------------------------------
+  # * Sets Variables That Help Jumps Work Correctly
+  #--------------------------------------------------------------------------
+  def _set_underwater_debounce(value)
+    @_slowness = value
+    @_underwater = value
+  end
+  #--------------------------------------------------------------------------
+  # * Frame Update
+  #--------------------------------------------------------------------------
+  alias update_yurish_undwtr update
+  def update
+    update_yurish_undwtr
+    if $game_player.oxygen_enabled
+      update_underwater_state
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Checks If Player Went Underwater
+  #--------------------------------------------------------------------------
+  def update_underwater_state
+    case YuriSH::Underwater::MODE
+    when :y_level
+      return if $game_player.water_level < 0
+      @_slowness = ((@y - $game_player.water_level) >= 0)
+      @underwater = YuriSH::Underwater::REVERSE ? !@_slowness : @_slowness
+    when :region
+      @_slowness = YuriSH::Underwater::REGIONS.include?(region_id)
+      @underwater = YuriSH::Underwater::REVERSE ? !@_slowness : @_slowness
+    else
+      return
+    end
+  end
+# Completely removes this if slow jump is off
+# Slow jump block start
+if YuriSH::Underwater::SLOW_JUMP
+  #--------------------------------------------------------------------------
+  # * Jump
+  #     x_plus : x-coordinate plus value
+  #     y_plus : y-coordinate plus value
+  #--------------------------------------------------------------------------
+  def jump(x_plus, y_plus)
+    @_underwater = @_slowness
+    super(x_plus, y_plus)
+    if @_underwater
+      @jump_peak = (@jump_peak * YuriSH::Underwater::JUMP_PEAK).round
+      @jump_count = @jump_peak * 2
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Calculate Jump Height
+  #--------------------------------------------------------------------------
+  def jump_height
+    if @_underwater
+      return (super / YuriSH::Underwater::JUMP_HEIGHT).round
+    end
+    super
+  end
+end
+# Slow jump block end
+
+end
+
+#==============================================================================
 # ** Game_Player
 #==============================================================================
 
@@ -767,27 +921,31 @@ class Game_Player < Game_Character
   #--------------------------------------------------------------------------
   # * Public Instance Variables
   #--------------------------------------------------------------------------
-  attr_reader   :current_oxygen   # Current Oxygen
-  attr_accessor :underwater       # Is player underwater
-  attr_accessor :water_level      # Water Y level
-  attr_accessor :oxygen_enabled   # Is Oxygen Enabled
-  attr_reader   :max_oxygen       # Max oxygen
+  attr_reader   :current_oxygen     # Current Oxygen
+  attr_reader   :max_oxygen         # Max oxygen
+  attr_reader   :breathe_underwater # Breathe underwater
+  attr_reader   :in_bubble_column   # If player in oxygen-restoring event
+  attr_accessor :underwater         # Is player underwater
+  attr_accessor :water_level        # Water Y level
+  attr_accessor :oxygen_enabled     # Is Oxygen Enabled 
   #--------------------------------------------------------------------------
   # * Object Initialization
   #--------------------------------------------------------------------------
   alias initialize_yurish_undwtr initialize
   def initialize
     initialize_yurish_undwtr
-    refresh_max_oxygen
-    @current_oxygen = @max_oxygen
-    @oxygen_lose_counter = YuriSH::Underwater::LOSE_RATE
-    @oxygen_gain_counter = YuriSH::Underwater::GAIN_RATE
-    @drown_damage_counter = YuriSH::Underwater::DAMAGE_RATE
     @underwater = false
     @_underwater = false # debounce value used in jump functions
     @_slowness = false # slows jump down even if REVERSED is true
     @water_level = -1
     @oxygen_enabled = true
+    @breathe_underwater = false
+    @in_bubble_column = false
+    refresh_max_oxygen
+    @current_oxygen = @max_oxygen
+    @oxygen_lose_counter = YuriSH::Underwater::LOSE_RATE
+    @oxygen_gain_counter = YuriSH::Underwater::GAIN_RATE
+    @drown_damage_counter = YuriSH::Underwater::DAMAGE_RATE
   end
   #--------------------------------------------------------------------------
   # * Sets Variables That Help Jumps Work Correctly
@@ -813,6 +971,19 @@ class Game_Player < Game_Character
   #--------------------------------------------------------------------------
   def get_oxygen_rate
     @current_oxygen / @max_oxygen.to_f
+  end
+  #--------------------------------------------------------------------------
+  # * Returns True If Player Should Lose Oxygen
+  #--------------------------------------------------------------------------
+  def player_lose_oxygen?
+    @underwater and !@breathe_underwater and !@in_bubble_column
+  end
+  #--------------------------------------------------------------------------
+  # * Should Player Breathe Underwater?
+  #--------------------------------------------------------------------------
+  def breathe_underwater?
+    return false if $game_party.members.empty?
+    $game_party.leader.equips.any? { |x| x and x.breathe_underwater == true }
   end
   #--------------------------------------------------------------------------
   # * Returns Array Of Objects That Have Oxygen Features
@@ -844,6 +1015,8 @@ class Game_Player < Game_Character
   #--------------------------------------------------------------------------
   def refresh_max_oxygen
     @max_oxygen = calc_max_oxygen
+    @breathe_underwater = breathe_underwater?
+    p "BREATHE UNDERWATER? " + @breathe_underwater.to_s
     p "MAX OXYGEN REFRESH"
     p "NEW VALUE: " + @max_oxygen.to_s 
   end
@@ -861,6 +1034,27 @@ class Game_Player < Game_Character
     end
   end
   #--------------------------------------------------------------------------
+  # * Determine if Same Position Event is Triggered
+  #--------------------------------------------------------------------------
+  alias check_event_trigger_here_yurish_undwtr check_event_trigger_here
+  def check_event_trigger_here(triggers)
+    @in_bubble_column = check_for_oxygen_event_here
+    check_event_trigger_here_yurish_undwtr(triggers)
+  end
+  #--------------------------------------------------------------------------
+  # * Determine if Same Position Event Restores Oxygen
+  #--------------------------------------------------------------------------
+  def check_for_oxygen_event_here
+    $game_map.events_xy(@x, @y).each do |event|
+      event.event.pages[0].list.each do |command|
+        if command.code == 108 and command.parameters[0] =~ YuriSH::Underwater::EVENT_REGEX
+          return true
+        end
+      end
+    end
+    return false
+  end
+  #--------------------------------------------------------------------------
   # * Update Drowning Counter
   #--------------------------------------------------------------------------
   def update_drowning_counter
@@ -874,7 +1068,7 @@ class Game_Player < Game_Character
   # * Update Drowning
   #--------------------------------------------------------------------------
   def update_drowning
-    return unless @underwater
+    return unless player_lose_oxygen?
     return if @drown_damage_counter > 0
     @drown_damage_counter = YuriSH::Underwater::DAMAGE_RATE
     
@@ -901,7 +1095,7 @@ class Game_Player < Game_Character
   # * Update Oxygen Counter
   #--------------------------------------------------------------------------
   def update_oxygen_counter
-    if @underwater
+    if player_lose_oxygen?
       @oxygen_lose_counter -= 1 unless @oxygen_lose_counter == 0
       return if @current_oxygen == 0
       if @oxygen_lose_counter == 0
