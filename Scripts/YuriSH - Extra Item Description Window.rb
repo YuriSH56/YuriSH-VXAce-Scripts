@@ -326,6 +326,7 @@ class Scene_MenuBase < Scene_Base
   #--------------------------------------------------------------------------
   def update
     super
+    return unless @additional_info_window
     @additional_info_window.toggle if Input.trigger?(:A)
   end
 end
