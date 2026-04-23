@@ -9,6 +9,9 @@
 #
 # * Version 1.1 (04.19.2026)
 #     Compatibility with AAA's DE Status Descriptions script.
+#
+# * Version 1.1.1 (04.23.2026)
+#	  Added :on_apply to MODE.
 # -----------------------------------------------------------------------------
 # * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
@@ -70,9 +73,10 @@ module YuriSH
     # ==========/\/\ DO NOT CHANGE THIS /\/\========== #
     
     # Decides which states will appear in the list.
-    # :all    - ALL states will appear (if state has a non-empty name).
-    # :desc   - all states with description set will appear.
-    # :list   - only unlocked states will appear.
+    # :all        - ALL states will appear (if state has a non-empty name).
+    # :desc       - all states with description set will appear.
+    # :on_unlock  - only unlocked states will appear.
+    # :on_apply   - only states that were applied at least once will appear.
     MODE = :all
     
     # Number of columns in the window.
@@ -100,7 +104,7 @@ module YuriSH
         @all_states = $data_states.select { |x| x && !x.name.empty? }
       when :desc
         @all_states = $data_states.select { |x| x && !x.description.empty? }
-      when :list
+      when :on_unlock, :on_apply
         @all_states = $data_states.select { |x| x && $game_player.unlocked_states.include?(x.id) }
       else
         @all_states = []
@@ -266,6 +270,21 @@ class RPG::State < RPG::BaseItem
       @_no_desc = @description.empty? ? true : false
     end
     @description
+  end
+end
+
+#==============================================================================
+# ** Game_Battler
+#==============================================================================
+
+class Game_Battler < Game_BattlerBase
+  #--------------------------------------------------------------------------
+  # * Add New State
+  #--------------------------------------------------------------------------
+  alias add_new_state_yurish_sttdsc add_new_state
+  def add_new_state(state_id)
+    $game_player.unlock_states(state_id) if YuriSH::StateDesc::MODE == :on_apply
+    add_new_state_yurish_sttdsc(state_id)
   end
 end
 
