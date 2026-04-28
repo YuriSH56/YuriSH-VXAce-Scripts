@@ -11,6 +11,9 @@
 #     Description window now appears in overworld menu and shops.
 #     Window can be toggled by pressing SHIFT.
 #     Overflowing text now scrolls.
+#
+# * Version 1.1.1 (04.28.2026)
+#     Fixed window not disappearing when selecting skill or item in battle.
 # -----------------------------------------------------------------------------
 # 
 #                   !!!REQUIRES "HELPER FUNCTIONS" SCRIPT!!!
@@ -306,6 +309,22 @@ class Scene_Battle < Scene_Base
   def on_item_cancel
     @additional_info_window.clear
     on_item_cancel_yurish_a29zb
+  end
+  #--------------------------------------------------------------------------
+  # * Skill [OK]
+  #--------------------------------------------------------------------------
+  alias on_skill_ok_yurish_a29zb on_skill_ok
+  def on_skill_ok
+    @additional_info_window.clear
+    on_skill_ok_yurish_a29zb
+  end
+  #--------------------------------------------------------------------------
+  # * Item [OK]
+  #--------------------------------------------------------------------------
+  alias on_item_ok_yurish_a29zb on_item_ok
+  def on_item_ok
+    @additional_info_window.clear
+    on_item_ok_yurish_a29zb
   end
 end
 
