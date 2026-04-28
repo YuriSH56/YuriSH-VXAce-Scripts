@@ -16,6 +16,9 @@
 #
 # * Version 1.1.1 (04.21.2026)
 #     Added an option to stop oxygen depletion when player can't move.
+#
+# * Version 1.2 (04.28.2026)
+#     Replaced Sprite_OxygenMeter with Window_OxygenMeter.
 # -----------------------------------------------------------------------------
 # * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
@@ -175,6 +178,10 @@ module YuriSH
     # (DEFAULT: true)
     SLOW_JUMP = true
     
+    # If true - you will walk slower underwater.
+    # (DEFAULT: true)
+    SLOW_WALK = true
+    
     # If true - air and water will be reversed (breathing underwater).
     # (DEFAULT: false)
     REVERSE = false
@@ -194,6 +201,10 @@ module YuriSH
     # (DEFAULT: "Oxygen")
     TEXT = "Oxygen"
     
+    # Color used for text.
+    # (DEFAULT: 0)
+    TEXT_COLOR = 0
+    
     # Visibility frames for oxygen meter.
     # The window will fade out after this many frames if oxygen value
     # didn't change.
@@ -201,8 +212,8 @@ module YuriSH
     COUNTER = 120
     
     # Size of the oxygen meter (width, height) in pixels.
-    # (DEFAULT: [72, 24])
-    METER_SIZE = [72, 24]
+    # (DEFAULT: [78, 32])
+    METER_SIZE = [78, 32]
     
     # Font size for meter text.
     # (DEFAULT: 16)
@@ -246,7 +257,7 @@ module YuriSH
     
     # ID of an animation that plays upon drowning damage.
     # Set to 0 to disable.
-    ANIMATION = 123
+    ANIMATION = 644
   end
 end
 
@@ -255,10 +266,40 @@ end
 # =============================================================================
 
 #==============================================================================
-# ** Sprite_OxygenMeter
+# ** Window_OxygenHeader
 #==============================================================================
 
-class Sprite_OxygenMeter < Sprite
+class Window_OxygenHeader < Window_Base
+  #--------------------------------------------------------------------------
+  # * Object Initialization
+  #--------------------------------------------------------------------------
+  def initialize
+    m = YuriSH::Underwater::METER_SIZE # Window size
+    super(0, 0, m[0], m[1])
+    self.opacity = 0
+    self.contents.font.size = YuriSH::Underwater::FONT_SIZE
+    draw_text(0,0,contents_width,contents_height, YuriSH::Underwater::TEXT, 1)
+    deactivate
+  end
+  #--------------------------------------------------------------------------
+  # * Get Line Height
+  #--------------------------------------------------------------------------
+  def line_height
+    return YuriSH::Underwater::FONT_SIZE
+  end
+  #--------------------------------------------------------------------------
+  # * Get Standard Padding Size
+  #--------------------------------------------------------------------------
+  def standard_padding
+    return 0
+  end
+end
+
+#==============================================================================
+# ** Window_OxygenMeter
+#==============================================================================
+
+class Window_OxygenMeter < Window_Base
   #--------------------------------------------------------------------------
   # * Class Variables
   #--------------------------------------------------------------------------
@@ -266,9 +307,10 @@ class Sprite_OxygenMeter < Sprite
   #--------------------------------------------------------------------------
   # * Object Initialization
   #--------------------------------------------------------------------------
-  def initialize(viewport)
-    super(viewport)
-    @_force_draw = @@_visible
+  def initialize
+    m = YuriSH::Underwater::METER_SIZE # Window size
+    super(0, 0, m[0], m[1])
+    deactivate
     @player = $game_player
     @current_oxygen = @player.current_oxygen
     @oxygen_enabled = @player.oxygen_enabled
@@ -278,75 +320,34 @@ class Sprite_OxygenMeter < Sprite
       @visibility_counter = YuriSH::Underwater::COUNTER
       @window_openness = YuriSH::Underwater::HIDE_TIME
     end
-    @mx = YuriSH::Underwater::METER_SIZE[0] # Window size
-    @my = YuriSH::Underwater::METER_SIZE[1] # Window size
-    make_bitmaps
+    @header = Window_OxygenHeader.new
+    refresh
     update
+  end
+  #--------------------------------------------------------------------------
+  # * Dispose
+  #--------------------------------------------------------------------------
+  def dispose
+    @header.dispose if @header
+    super
+  end
+  #--------------------------------------------------------------------------
+  # * Get Line Height
+  #--------------------------------------------------------------------------
+  def line_height
+    return YuriSH::Underwater::FONT_SIZE
+  end
+  #--------------------------------------------------------------------------
+  # * Get Standard Padding Size
+  #--------------------------------------------------------------------------
+  def standard_padding
+    return 8
   end
   #--------------------------------------------------------------------------
   # * Set Visibility (Class Variable)
   #--------------------------------------------------------------------------
   def self.set_class_visible(value)
     @@_visible = value
-  end
-  #--------------------------------------------------------------------------
-  # * Reset Values
-  #--------------------------------------------------------------------------
-  def reset_values
-    @visibility_counter = 0
-    @window_openness = 0
-    self.bitmap = nil
-  end
-  #--------------------------------------------------------------------------
-  # * Get Text Color
-  #     n : Text color number (0..31)
-  #--------------------------------------------------------------------------
-  def text_color(n)
-    @window_skin.get_pixel(64 + (n % 8) * 8, 96 + (n / 8) * 8)
-  end
-  #--------------------------------------------------------------------------
-  # * Creates Bitmaps For Window Frame And Background
-  #--------------------------------------------------------------------------
-  def make_bitmaps
-    @window_skin = Cache.system("Window")
-    
-    # Window background
-    @window_background = Bitmap.new(@mx-4, @my-4)
-    @window_background.stretch_blt(
-      @window_background.rect,
-      @window_skin,
-      Rect.new(0, 0, 64, 64))
-    
-    # Window frame
-    @window_frame = Bitmap.new(@mx, @my)
-    # Top Left Corner
-    @window_frame.blt(0,      0,    @window_skin, Rect.new(64,  0,  8, 8))
-    # Top Right Corner
-    @window_frame.blt(@mx-8,  0,    @window_skin, Rect.new(120, 0,  8, 8))
-    # Bottom Right Corner
-    @window_frame.blt(@mx-8,  @my-8, @window_skin, Rect.new(120, 56, 8, 8))
-    # Bottom Left Corner
-    @window_frame.blt(0,      @my-8, @window_skin, Rect.new(64,  56, 8, 8))
-    # Top Wall
-    @window_frame.stretch_blt(
-      Rect.new(8, 0, @mx-16, 8),
-      @window_skin,
-      Rect.new(72, 0, 48, 8))
-    # Bottom Wall
-    @window_frame.stretch_blt(
-      Rect.new(8, @my-8, @mx-16, 8),
-      @window_skin,
-      Rect.new(72, 56, 48, 8))
-    # Left Wall
-    @window_frame.stretch_blt(
-      Rect.new(0, 8, 8, @my-16),
-      @window_skin,
-      Rect.new(64, 8, 8, 48))
-    # Right Wall
-    @window_frame.stretch_blt(
-      Rect.new(@mx-8, 8, 8, @my-16),
-      @window_skin,
-      Rect.new(120, 8, 8, 48))
   end
   #--------------------------------------------------------------------------
   # * Gets Oxygen Rate (0.0 - 1.0)
@@ -368,15 +369,6 @@ class Sprite_OxygenMeter < Sprite
     end
   end
   #--------------------------------------------------------------------------
-  # * Free
-  #--------------------------------------------------------------------------
-  def dispose
-    @window_background.dispose if @window_background
-    @window_frame.dispose if @window_frame
-    bitmap.dispose if bitmap
-    super
-  end
-  #--------------------------------------------------------------------------
   # * Return True If Oxygen Has Changed
   #--------------------------------------------------------------------------
   def oxygen_changed?
@@ -393,82 +385,35 @@ class Sprite_OxygenMeter < Sprite
   #--------------------------------------------------------------------------
   def update
     super
-    update_oxygen_enable
+    update_oxygen_enable if enable_changed?
     return unless @oxygen_enabled
     update_counter
-    update_bitmap
+    if oxygen_changed?
+      refresh
+    end
     update_position
-    update_other
     update_opacity
-    update_oxygen_change
-    @_force_draw = false if @_force_draw
   end
   #--------------------------------------------------------------------------
-  # * Update Oxygen Changes
+  # * Refresh
   #--------------------------------------------------------------------------
-  def update_oxygen_change
-    if oxygen_changed?
-      @current_oxygen = @player.current_oxygen
-    end
+  def refresh
+    update_oxygen_change
+    update_bitmap
   end
   #--------------------------------------------------------------------------
   # * Update Oxygen Enable State
   #--------------------------------------------------------------------------
   def update_oxygen_enable
-    if enable_changed?
-      @oxygen_enabled = @player.oxygen_enabled
-      reset_values
-    end
+    @oxygen_enabled = @player.oxygen_enabled
+    @visibility_counter = 0
+    @window_openness = 0
   end
   #--------------------------------------------------------------------------
-  # * Redraws Oxygen Gauge Bitmap
+  # * Update Oxygen Changes
   #--------------------------------------------------------------------------
-  def update_oxygen_gauge
-    @window_gauge = Bitmap.new(@mx-12, @my-12)
-    @window_gauge.gradient_fill_rect(0, 0,
-    @window_gauge.width * get_oxygen_rate, @window_gauge.height,
-    text_color(YuriSH::Underwater::COLORS[0]),
-    text_color(YuriSH::Underwater::COLORS[1])
-    )
-  end
-  #--------------------------------------------------------------------------
-  # * Update Transfer Origin Bitmap
-  #--------------------------------------------------------------------------
-  def update_bitmap
-    if @oxygen_enabled
-      return unless oxygen_changed? || @_force_draw
-      update_oxygen_gauge
-      self.bitmap = Bitmap.new(@mx+24, @my+24)
-      self.bitmap.font.size = YuriSH::Underwater::FONT_SIZE
-      self.bitmap.blt(14, 26, @window_background, @window_background.rect)
-      self.bitmap.blt(18, 30, @window_gauge, @window_gauge.rect)
-      self.bitmap.blt(12, 24, @window_frame, @window_frame.rect)
-      self.bitmap.draw_text(0, 24, self.bitmap.width, @my, get_oxygen_text, 1)
-      self.bitmap.draw_text(0, 8, self.bitmap.width, 24, YuriSH::Underwater::TEXT, 1)
-    else
-      self.bitmap = nil
-    end
-  end
-  #--------------------------------------------------------------------------
-  # * Update Position
-  #--------------------------------------------------------------------------
-  def update_position
-    wfix = yfix = 0
-    if self.bitmap
-      wfix = self.bitmap.width / 2
-      yfix = self.bitmap.height
-    end
-    self.x = @player.screen_x - wfix
-    self.y = @player.screen_y - yfix - YuriSH::Underwater::Y_OFFSET
-    self.z = @player.screen_z
-  end
-  #--------------------------------------------------------------------------
-  # * Update Other
-  #--------------------------------------------------------------------------
-  def update_other
-    self.blend_type = @player.blend_type
-    self.bush_depth = @player.bush_depth
-    self.visible = !@player.transparent
+  def update_oxygen_change
+    @current_oxygen = @player.current_oxygen
   end
   #--------------------------------------------------------------------------
   # * Update Counter
@@ -489,12 +434,36 @@ class Sprite_OxygenMeter < Sprite
     end
   end
   #--------------------------------------------------------------------------
+  # * Update Transfer Origin Bitmap
+  #--------------------------------------------------------------------------
+  def update_bitmap
+    contents.clear
+    return unless @oxygen_enabled
+    self.contents.font.size = YuriSH::Underwater::FONT_SIZE
+    draw_gauge(0,0,contents_width, get_oxygen_rate,
+        text_color(YuriSH::Underwater::COLORS[0]),
+        text_color(YuriSH::Underwater::COLORS[1]))
+    change_color(text_color(YuriSH::Underwater::TEXT_COLOR))
+    draw_text(0,0, contents_width, contents_height, get_oxygen_text, 1)
+  end
+  #--------------------------------------------------------------------------
+  # * Update Position
+  #--------------------------------------------------------------------------
+  def update_position
+    wfix = self.width / 2
+    yfix = self.height
+    self.x = @player.screen_x - wfix
+    self.y = @player.screen_y - yfix - YuriSH::Underwater::Y_OFFSET
+    @header.x = self.x
+    @header.y = self.y - YuriSH::Underwater::FONT_SIZE - 2
+  end
+  #--------------------------------------------------------------------------
   # * Update Opacity
   #--------------------------------------------------------------------------
   def update_opacity
-    return unless self.visible
     new_op = 255.0 * (@window_openness.to_f / YuriSH::Underwater::HIDE_TIME.to_f)
-    self.opacity = new_op * (@player.opacity / 255.0)
+    self.opacity = self.contents_opacity = new_op * (@player.opacity / 255.0)
+    @header.contents_opacity = self.opacity
     @@_visible = self.opacity == 255
   end
 end
@@ -611,55 +580,6 @@ module DataManager
 end
 
 #==============================================================================
-# ** Spriteset_Map
-#==============================================================================
-
-class Spriteset_Map
-  #--------------------------------------------------------------------------
-  # * Create Viewport
-  #--------------------------------------------------------------------------
-  alias create_viewports_yurish_undwtr create_viewports
-  def create_viewports
-    create_viewports_yurish_undwtr
-    create_oxygen_meter
-  end
-  #--------------------------------------------------------------------------
-  # * Dispose
-  #--------------------------------------------------------------------------
-  alias dispose_yurish_undwtr dispose
-  def dispose
-    dispose_oxygen_meter
-    dispose_yurish_undwtr
-  end
-  #--------------------------------------------------------------------------
-  # * Create Oxygen Meter Sprite
-  #--------------------------------------------------------------------------
-  def create_oxygen_meter
-    @oxygen_meter_sprite = Sprite_OxygenMeter.new(@viewport2)
-  end
-  #--------------------------------------------------------------------------
-  # * Free Oxygen Meter
-  #--------------------------------------------------------------------------
-  def dispose_oxygen_meter
-    @oxygen_meter_sprite.dispose
-  end
-  #--------------------------------------------------------------------------
-  # * Frame Update
-  #--------------------------------------------------------------------------
-  alias update_yurish_undwtr update
-  def update
-    update_oxygen_meter
-    update_yurish_undwtr
-  end
-  #--------------------------------------------------------------------------
-  # * Update Oxygen Meter Sprite
-  #--------------------------------------------------------------------------
-  def update_oxygen_meter
-    @oxygen_meter_sprite.update if @oxygen_meter_sprite
-  end
-end
-
-#==============================================================================
 # ** Scene_Map
 #==============================================================================
 
@@ -671,6 +591,20 @@ class Scene_Map < Scene_Base
   def start
     start_yurish_undwtr
     $game_player.refresh_max_oxygen
+  end
+  #--------------------------------------------------------------------------
+  # * Create All Windows
+  #--------------------------------------------------------------------------
+  alias create_all_windows_yurish_undwtr create_all_windows
+  def create_all_windows
+    create_all_windows_yurish_undwtr
+    create_oxygen_window
+  end
+  #--------------------------------------------------------------------------
+  # * Create Oxygen Meter Window
+  #--------------------------------------------------------------------------
+  def create_oxygen_window
+    @oxygen_window = Window_OxygenMeter.new
   end
 end
 
@@ -718,8 +652,7 @@ class Game_Map
     su = @map.note =~ YuriSH::Underwater::START_REGEX ? true : false
     $game_player.water_level = wl
     $game_player.underwater = su
-    $game_player._set_underwater_debounce(su)
-    $game_player.followers.each { |x| x._set_underwater_debounce(su) }
+    $game_player.followers.each { |x| x.underwater = su }
     p "Water Level: " + wl.to_s
     p "Start Underwater: " + su.to_s
   end
@@ -846,7 +779,7 @@ class Game_Follower < Game_Character
   #--------------------------------------------------------------------------
   # * Public Instance Variables
   #--------------------------------------------------------------------------
-  attr_accessor :underwater       # Is follower underwater
+  attr_reader :underwater       # Is follower underwater
   #--------------------------------------------------------------------------
   # * Object Initialization
   #--------------------------------------------------------------------------
@@ -858,11 +791,25 @@ class Game_Follower < Game_Character
     @_slowness = false # slows jump down even if REVERSED is true
   end
   #--------------------------------------------------------------------------
+  # * Get Move Speed (Account for Dash)
+  #--------------------------------------------------------------------------
+  def real_move_speed
+    return super unless YuriSH::Underwater::SLOW_WALK
+    super + (@_slowness ? -1 : 0)
+  end
+  #--------------------------------------------------------------------------
   # * Sets Variables That Help Jumps Work Correctly
   #--------------------------------------------------------------------------
   def _set_underwater_debounce(value)
     @_slowness = value
     @_underwater = value
+  end
+  #--------------------------------------------------------------------------
+  # * Sets Underwater State
+  #--------------------------------------------------------------------------
+  def underwater=(value)
+    @underwater = value
+    _set_underwater_debounce(value)
   end
   #--------------------------------------------------------------------------
   # * Frame Update
@@ -932,7 +879,7 @@ class Game_Player < Game_Character
   attr_reader   :max_oxygen         # Max oxygen
   attr_reader   :breathe_underwater # Breathe underwater
   attr_reader   :in_bubble_column   # If player in oxygen-restoring event
-  attr_accessor :underwater         # Is player underwater
+  attr_reader   :underwater         # Is player underwater
   attr_accessor :water_level        # Water Y level
   attr_accessor :oxygen_enabled     # Is Oxygen Enabled 
   #--------------------------------------------------------------------------
@@ -955,11 +902,26 @@ class Game_Player < Game_Character
     @drown_damage_counter = YuriSH::Underwater::DAMAGE_RATE
   end
   #--------------------------------------------------------------------------
+  # * Get Move Speed (Account for Dash)
+  #--------------------------------------------------------------------------
+  def real_move_speed
+    return super unless YuriSH::Underwater::SLOW_WALK
+    super + (@_slowness ? -1 : 0)
+  end
+  #--------------------------------------------------------------------------
   # * Sets Variables That Help Jumps Work Correctly
   #--------------------------------------------------------------------------
   def _set_underwater_debounce(value)
     @_slowness = value
     @_underwater = value
+  end
+  #--------------------------------------------------------------------------
+  # * Sets Underwater State
+  #--------------------------------------------------------------------------
+  def underwater=(value)
+    @underwater = value
+    _set_underwater_debounce(value)
+    $game_player.followers.each { |x| x.underwater = value }
   end
   #--------------------------------------------------------------------------
   # * Sets Oxygen
