@@ -19,6 +19,7 @@
 #
 # * Version 1.2 (04.28.2026)
 #     Replaced Sprite_OxygenMeter with Window_OxygenMeter.
+#     Now changes colors when oxygen count goes critical.
 # -----------------------------------------------------------------------------
 # * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
@@ -204,6 +205,16 @@ module YuriSH
     # Color used for text.
     # (DEFAULT: 0)
     TEXT_COLOR = 0
+    
+    # Gauge colors when oxygen meter reaches critical point.
+    CRITICAL_COLORS = [24,20]
+    
+    # Rate at which oxygen count becomes critical.
+    # (DEFAULT: 0.2 - 20%)
+    CRITICAL_RATE = 0.2
+    
+    # Text color when oxygen count becomes critical.
+    CRITICAL_TEXT_COLOR = 2
     
     # Visibility frames for oxygen meter.
     # The window will fade out after this many frames if oxygen value
@@ -440,10 +451,11 @@ class Window_OxygenMeter < Window_Base
     contents.clear
     return unless @oxygen_enabled
     self.contents.font.size = YuriSH::Underwater::FONT_SIZE
-    draw_gauge(0,0,contents_width, get_oxygen_rate,
-        text_color(YuriSH::Underwater::COLORS[0]),
-        text_color(YuriSH::Underwater::COLORS[1]))
-    change_color(text_color(YuriSH::Underwater::TEXT_COLOR))
+    is_critical = get_oxygen_rate < YuriSH::Underwater::CRITICAL_RATE
+    g_c = is_critical ? YuriSH::Underwater::CRITICAL_COLORS : YuriSH::Underwater::COLORS
+    t_c = is_critical ? YuriSH::Underwater::CRITICAL_TEXT_COLOR : YuriSH::Underwater::TEXT_COLOR
+    draw_gauge(0,0,contents_width, get_oxygen_rate, text_color(g_c[0]), text_color(g_c[1]))
+    change_color(text_color(t_c))
     draw_text(0,0, contents_width, contents_height, get_oxygen_text, 1)
   end
   #--------------------------------------------------------------------------
@@ -574,7 +586,7 @@ module DataManager
   # * Set Up New Game
   #--------------------------------------------------------------------------
   def self.setup_new_game
-    Sprite_OxygenMeter::set_class_visible(false)
+    Window_OxygenMeter::set_class_visible(false)
     setup_new_game_yurish_undwtr
   end
 end
