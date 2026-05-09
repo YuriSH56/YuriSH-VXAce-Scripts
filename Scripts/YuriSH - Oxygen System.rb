@@ -19,6 +19,7 @@
 #
 # * Version 1.2 (04.28.2026)
 #     Replaced Sprite_OxygenMeter with Window_OxygenMeter.
+#     Now changes colors when oxygen count goes critical.
 #
 # * Version 1.3 (05.09.2026)
 #     Added LCM support.
