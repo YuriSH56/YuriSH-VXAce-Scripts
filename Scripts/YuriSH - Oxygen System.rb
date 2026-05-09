@@ -19,7 +19,9 @@
 #
 # * Version 1.2 (04.28.2026)
 #     Replaced Sprite_OxygenMeter with Window_OxygenMeter.
-#     Now changes colors when oxygen count goes critical.
+#
+# * Version 1.3 (05.09.2026)
+#     Added LCM support.
 # -----------------------------------------------------------------------------
 # * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
@@ -269,6 +271,12 @@ module YuriSH
     # ID of an animation that plays upon drowning damage.
     # Set to 0 to disable.
     ANIMATION = 644
+    
+    # If true - player and followers will not take damage if they fall into
+    # a body of water.
+    # REQUIRES "Lisa Core Movement" SCRIPT.
+    # (DEFAULT: true)
+    LCM_NO_DAMAGE = true
   end
 end
 
@@ -649,24 +657,41 @@ end
 
 class Game_Map
   #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_reader     :underwater       # Map is considered underwater
+  attr_reader     :water_level      # Water level
+  #--------------------------------------------------------------------------
   # * Setup
   #--------------------------------------------------------------------------
   alias setup_yurish_undwtr setup
   def setup(map_id)
     setup_yurish_undwtr(map_id)
+    @underwater = _underwater
+    @water_level = _water_level
     set_player_water_params
+  end
+  #--------------------------------------------------------------------------
+  # * Get Underwater State From Notes
+  #--------------------------------------------------------------------------
+  def _underwater
+    @map.note =~ YuriSH::Underwater::START_REGEX ? true : false
+  end
+  #--------------------------------------------------------------------------
+  # * Get Water Level From Notes
+  #--------------------------------------------------------------------------
+  def _water_level
+    @map.note =~ YuriSH::Underwater::Y_REGEX ? $1.to_i : -1
   end
   #--------------------------------------------------------------------------
   # * Set Water Parameters For Player
   #--------------------------------------------------------------------------
   def set_player_water_params
-    wl = @map.note =~ YuriSH::Underwater::Y_REGEX ? $1.to_i : -1
-    su = @map.note =~ YuriSH::Underwater::START_REGEX ? true : false
-    $game_player.water_level = wl
-    $game_player.underwater = su
-    $game_player.followers.each { |x| x.underwater = su }
-    p "Water Level: " + wl.to_s
-    p "Start Underwater: " + su.to_s
+    $game_player.water_level = @water_level
+    $game_player.underwater = @underwater
+    $game_player.followers.each { |x| x.underwater = @underwater }
+    p "Water Level: " + @water_level.to_s
+    p "Start Underwater: " + @underwater.to_s
   end
 end
 
@@ -877,7 +902,7 @@ if YuriSH::Underwater::SLOW_JUMP
 end
 # Slow jump block end
 
-end
+end # YuriSH::Underwater::SLOW_JUMP
 
 #==============================================================================
 # ** Game_Player
@@ -1146,4 +1171,55 @@ if YuriSH::Underwater::SLOW_JUMP
 end
 # Slow jump block end
 
+end # YuriSH::Underwater::SLOW_JUMP
+
+
+# LISA CORE MOVEMENT SUPPORT BLOCK HERE
+if $imported["Liam-LisaCoreMove"]
+  
+#==============================================================================
+# ** Game_CharacterBase
+#==============================================================================
+  
+class Game_CharacterBase
+  #--------------------------------------------------------------------------
+  # * Side Fall Checks
+  #--------------------------------------------------------------------------
+  alias sideFallChecks_yurish_undwtr sideFallChecks
+  def sideFallChecks(direction, forcedCheck = false)
+    @_temp_orig_y = $game_map.round_y_with_direction(@y, direction)
+    sideFallChecks_yurish_undwtr(direction, forcedCheck)
+  end
+  #--------------------------------------------------------------------------
+  # * Unsafe Side Fall
+  #--------------------------------------------------------------------------
+  alias sideFallBig_yurish_undwtr sideFallBig
+  def sideFallBig(yDiff, activeTerrainTag) 
+    if $game_map.underwater or (@_temp_orig_y and @_temp_orig_y + yDiff >= $game_map.water_level)
+      sideFallReg(yDiff)
+      return
+    end
+    sideFallBig_yurish_undwtr(yDiff, activeTerrainTag) 
+  end
+  #--------------------------------------------------------------------------
+  # * Dash Jump Fall Checks
+  #--------------------------------------------------------------------------
+  alias dashJumpFall_yurish_undwtr dashJumpFall
+  def dashJumpFall(direction, currXUnderCharacter)
+    @_temp_orig_y = $game_map.round_y_with_direction(@y, direction)
+    dashJumpFall_yurish_undwtr(direction, currXUnderCharacter)
+  end
+  #--------------------------------------------------------------------------
+  # * Unsafe Side Fall With Momentum
+  #--------------------------------------------------------------------------
+  alias sideFallMomBig_yurish_undwtr sideFallMomBig
+  def sideFallMomBig(direction, xDiff, yDiff, activeTerrainTag)
+    if $game_map.underwater or (@_temp_orig_y and @_temp_orig_y + yDiff >= $game_map.water_level)
+      sideFallMomReg(direction, xDiff, yDiff)
+      return
+    end
+    sideFallMomBig_yurish_undwtr(direction, xDiff, yDiff, activeTerrainTag)
+  end
 end
+    
+end # $imported["Liam-LisaCoreMove"]

@@ -1,6 +1,20 @@
 # =============================================================================
-# ** Helper Functions
+# ** Helper Functions (Version 1.0)
 # * By YuriSH
+# -----------------------------------------------------------------------------
+# * UPDATES HISTORY
+# -----------------------------------------------------------------------------
+# * Version 1.0 (05.09.2026)
+#     Initial release.
+#     Added framework for event tag scan.
+#     Added commands for getting window contents rect position on screen.
+#     Added commands for getting center coordinate for Window_Selectable item
+#       on screen.
+#     Added "last_pos" to Window_Base that keeps last position of processed
+#       character.
+#     Exposed Game_Interpreter parameters.
+# -----------------------------------------------------------------------------
+# * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
 # This script includes some code snippets shared among other scripts of mine.
 # Some scripts REQUIRE this one to work.
@@ -9,7 +23,77 @@
 # =============================================================================
 
 $imported = {} if $imported.nil?
-$imported["YuriSH_HelperFunctions"] = true
+$imported["YuriSH_HelperFunctions"] = 1.0
+
+module YuriSH
+  # Limits amount of event commands to scan.
+  # By default, scans first 5 commands.
+  # Increasing this number may cause lag if you have a lot of events on a map
+  # with many commands on its first page.
+  # NOTE: EACH LINE INSIDE A COMMENT COUNTS AS A SEPARATE COMMAND!!!
+  CMD_LIMIT = 5
+end
+
+#==============================================================================
+# ** Game_Interpreter
+#==============================================================================
+
+class Game_Interpreter
+  #--------------------------------------------------------------------------
+  # * Public Instance Variables
+  #--------------------------------------------------------------------------
+  attr_accessor :params # Command parameters
+end
+
+#==============================================================================
+# ** Game_Event
+#==============================================================================
+
+class Game_Event < Game_Character
+  #--------------------------------------------------------------------------
+  # * Object Initialization
+  #     event:  RPG::Event
+  #--------------------------------------------------------------------------
+  alias initialize_yurish_helper initialize
+  def initialize(map_id, event)
+    @last_scanned_page = nil
+    init_pre_scan
+    initialize_yurish_helper(map_id, event)
+    scan_for_tags(event.pages[0])
+  end
+  #--------------------------------------------------------------------------
+  # * Refresh
+  #--------------------------------------------------------------------------
+  alias refresh_yurish_helper refresh
+  def refresh
+    refresh_yurish_helper
+    scan_for_tags(@page) if @page
+  end
+  #--------------------------------------------------------------------------
+  # * Called Before Tag Scan Runs
+  #   Alias This Method if You Need To Initialize Something Before Tag Scan
+  #--------------------------------------------------------------------------
+  def init_pre_scan
+  end
+  #--------------------------------------------------------------------------
+  # * Scans Provided List Of Event Comands for Comments With Possible Tags
+  #     page: RPG::Event::Page
+  #--------------------------------------------------------------------------
+  def scan_for_tags(page)
+    return unless page
+    return if @last_scanned_page == page
+    @last_scanned_page = page
+    page.list.select { |c| c.code == 108 || c.code == 408 }[0..YuriSH::CMD_LIMIT-1].each do |c|
+      parse_comment(c.parameters[0])
+    end
+  end
+  #--------------------------------------------------------------------------
+  # * Parses Comment String For Tags
+  #   Alias This Method To Parse Your Own Tags
+  #--------------------------------------------------------------------------
+  def parse_comment(comment)
+  end
+end
 
 #==============================================================================
 # ** Window_Base
