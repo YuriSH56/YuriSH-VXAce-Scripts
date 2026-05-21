@@ -158,7 +158,7 @@ module YuriSH
       @title2.push($data_system.title2_name) unless $data_system.title2_name.empty?
       @characters.push($data_system.boat.character_name) unless $data_system.boat.character_name.empty?
       @characters.push($data_system.ship.character_name) unless $data_system.ship.character_name.empty?
-      @characters.push($data_system.airship..character_name) unless $data_system.airship.character_name.empty?
+      @characters.push($data_system.airship.character_name) unless $data_system.airship.character_name.empty?
       @bgm.push($data_system.title_bgm.name) if $data_system.title_bgm
       @bgm.push($data_system.battle_bgm.name) if $data_system.battle_bgm
       @me.push($data_system.battle_end_me.name) if $data_system.battle_end_me
