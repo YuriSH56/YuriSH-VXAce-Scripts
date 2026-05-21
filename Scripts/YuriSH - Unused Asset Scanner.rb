@@ -17,6 +17,9 @@
 #
 # NOTE: This script does NOT scan any assets used in scripts or script calls.
 # You have to check for those manually.
+#
+# WARNING: Files with non-latin names may be falsely flagged
+# as unused even if they are used.
 # =============================================================================
 
 $imported = {} if $imported.nil?
