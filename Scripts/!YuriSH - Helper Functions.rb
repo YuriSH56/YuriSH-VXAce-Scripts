@@ -13,6 +13,10 @@
 #     Added "last_pos" to Window_Base that keeps last position of processed
 #       character.
 #     Exposed Game_Interpreter parameters.
+#
+# * Version 1.1 (10.03.2026)
+#     Added "distance", "remap", "time" and "wave" functions
+#     to YuriSH module.
 # -----------------------------------------------------------------------------
 # * SCRIPT DESCRIPTION
 # -----------------------------------------------------------------------------
@@ -23,7 +27,7 @@
 # =============================================================================
 
 $imported = {} if $imported.nil?
-$imported["YuriSH_HelperFunctions"] = 1.0
+$imported["YuriSH_HelperFunctions"] = 1.1
 
 module YuriSH
   # Limits amount of event commands to scan.
@@ -32,6 +36,32 @@ module YuriSH
   # with many commands on its first page.
   # NOTE: EACH LINE INSIDE A COMMENT COUNTS AS A SEPARATE COMMAND!!!
   CMD_LIMIT = 5
+  
+  #--------------------------------------------------------------------------
+  # * Distance Between Two Points
+  #--------------------------------------------------------------------------
+  def self.distance(x1,y1,x2,y2)
+    return Math.sqrt( ((x2 - x1).abs ** 2) + ((y2 - y1).abs ** 2) ).round
+  end
+  #--------------------------------------------------------------------------
+  # * Remaps Value From Old Range To New Range
+  #--------------------------------------------------------------------------
+  def self.remap(value, oldmin, oldmax, newmin, newmax)
+    (((value - oldmin) * (newmax - newmin)) / (oldmax - oldmin)) + newmin
+  end
+  #--------------------------------------------------------------------------
+  # * Returns Time (In Seconds) Since Start
+  #--------------------------------------------------------------------------
+  def self.time
+    return Graphics.frame_count.to_f / Graphics.frame_rate.to_f
+  end
+  #--------------------------------------------------------------------------
+  # * Returns Wave Value With Specified Frequency And Amplitude
+  #--------------------------------------------------------------------------
+  def self.wave(freq, ampl, c_time = nil)
+    actual_time = c_time.nil? ? time : c_time
+    return Math.sin(actual_time * freq) * ampl
+  end
 end
 
 #==============================================================================
